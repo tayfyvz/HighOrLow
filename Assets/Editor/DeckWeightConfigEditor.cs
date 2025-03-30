@@ -9,17 +9,18 @@ public class DeckWeightConfigEditor : Editor
     SerializedProperty cardOverrides;
 
     private void OnEnable() {
-        defaultCardWeight = serializedObject.FindProperty("_defaultWeight");
-        suitOverrides = serializedObject.FindProperty("_suitOverrides");
-        cardOverrides = serializedObject.FindProperty("_cardOverrides");
-        
+        defaultCardWeight = serializedObject.FindProperty("DefaultWeight");
+        suitOverrides = serializedObject.FindProperty("SuitOverrides");
+        cardOverrides = serializedObject.FindProperty("CardOverrides");
+    
         if (defaultCardWeight == null)
-            Debug.LogError("defaultCardWeight property not found!");
+            Debug.LogError("DefaultWeight property not found!");
         if (suitOverrides == null)
-            Debug.LogError("suitOverrides property not found!");
+            Debug.LogError("SuitOverrides property not found!");
         if (cardOverrides == null)
-            Debug.LogError("cardOverrides property not found!");
+            Debug.LogError("CardOverrides property not found!");
     }
+
 
     public override void OnInspectorGUI() {
         serializedObject.Update();

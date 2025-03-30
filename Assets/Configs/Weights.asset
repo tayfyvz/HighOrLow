@@ -12,3 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 923c1998ad29400dad30f48d0967955c, type: 3}
   m_Name: Weights
   m_EditorClassIdentifier: 
+  DefaultWeight: 1
+  SuitOverrides:
+  - Suit: 3
+    Weight: 2.3
+  CardOverrides:
+  - Suit: 4
+    Rank: 1
+    Weight: 3.1
