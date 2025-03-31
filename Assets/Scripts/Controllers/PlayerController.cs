@@ -37,6 +37,10 @@ namespace Controllers
             view.UpdateView(player);
         }
 
+        public int GetPlayerCount()
+        {
+            return _players.Count;
+        }
         /// <summary>
         /// Registers an additional view for the specified player.
         /// </summary>

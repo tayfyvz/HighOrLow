@@ -7,9 +7,9 @@ namespace Controllers
 {
     public class GameController : IGameController
     {
-        private readonly PlayerController _playerController;
-        private readonly DeckController _deckController;
-        private readonly BetController _betController;
+        private readonly IPlayerController _playerController;
+        private readonly IDeckController _deckController;
+        private readonly IBetController _betController;
 
         public GameController()
         {
@@ -34,7 +34,7 @@ namespace Controllers
         /// </summary>
         public void PlayRound()
         {
-            int n = _playerController.PlayerCount;
+            int n = _playerController.GetPlayerCount();
             Card[] roundCards = new Card[n];
 
             for (int i = 0; i < n; i++)
@@ -84,10 +84,7 @@ namespace Controllers
 
                 for (int i = 0; i < playerCount; i++)
                 {
-                    // Create each player's model, providing a unique ID for each.
-                    // (Assuming Player class constructor overload: Player(string name, int id))
                     Player player = new Player($"Player {i + 1}", i);
-                    // Add the player and register the corresponding view with the centralized PlayerController.
                     _playerController.AddPlayer(player, playerViews[i]);
                 }
             }
