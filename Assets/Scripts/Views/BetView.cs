@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Views
 {
-    public class BetView : MonoBehaviour
+    public class BetView : MonoBehaviour, IBetView, IView
     {
         public TextMeshProUGUI ScoreText;  // Assigned via Inspector.
 

@@ -1,44 +1,29 @@
 using Models;
+using UnityEngine;
 using Utils;
 using Views;
 
 namespace Controllers
 {
-    public class GameController
+    public class GameController : IGameController
     {
-        public DeckController DeckCtrl { get; private set; }
-        public PlayerController[] PlayerControllers { get; private set; }
-        public BetController BetCtrl { get; private set; }
+        private readonly PlayerController _playerController;
+        private readonly DeckController _deckController;
+        private readonly BetController _betController;
 
-        /// <summary>
-        /// Constructs the game controller.
-        /// The number of players is determined by the length of the playerViews array.
-        /// Each player gets one PlayerModel and one PlayerController.
-        /// </summary>
-        public GameController(PlayerView[] playerViews)
+        public GameController()
         {
-            int playerCount = playerViews.Length;
-            DeckCtrl = new DeckController();
-            PlayerControllers = new PlayerController[playerCount];
-            for (int i = 0; i < playerCount; i++)
-            {
-                // Create each player's model and controller.
-                Player player = new Player($"Player {i + 1}");
-                PlayerController controller = new PlayerController(player);
-                // Register the corresponding PlayerView with the PlayerController.
-                controller.RegisterView(playerViews[i]);
-                PlayerControllers[i] = controller;
-            }
-
-            BetCtrl = new BetController();
+            _deckController = new DeckController();
+            _playerController = new PlayerController();
+            _betController = new BetController();
         }
 
         /// <summary>
-        /// Sets the user's bet.
+        /// Sets the user's bet based on the provided player index.
         /// </summary>
         public void SetUserBet(int playerIndex)
         {
-            BetCtrl.SetBet(playerIndex);
+            _betController.SetBet(playerIndex);
         }
 
         /// <summary>
@@ -49,16 +34,17 @@ namespace Controllers
         /// </summary>
         public void PlayRound()
         {
-            int n = PlayerControllers.Length;
+            int n = _playerController.PlayerCount;
             Card[] roundCards = new Card[n];
 
             for (int i = 0; i < n; i++)
             {
-                if (!DeckCtrl.HasCards(1))
-                    DeckCtrl.ResetDeck();
-                Card card = DeckCtrl.DrawCard();
+                if (!_deckController.HasCards(1))
+                    _deckController.ResetDeck();
+                Card card = _deckController.DrawCard();
                 roundCards[i] = card;
-                PlayerControllers[i].ReceiveCard(card);
+                // Direct the centralized PlayerController to update the appropriate player.
+                _playerController.ReceiveCard(i, card);
             }
 
             // Determine the winner by comparing cards.
@@ -69,7 +55,42 @@ namespace Controllers
                     winningIndex = i;
             }
 
-            BetCtrl.EvaluateBet(winningIndex, 10);
+            _betController.EvaluateBet(winningIndex, 10);
+        }
+
+        public void PassView(IView view)
+        {
+            switch (view)
+            {
+                case IDeckView deckView:
+                    _deckController.AttachView(deckView);
+                    return;
+                case IBetView betView:
+                    _betController.AttachView(betView);
+                    return;
+            }
+        }
+
+        public void PassView(IView[] views)
+        {
+            if (views.Length == 0)
+            {
+                return;
+            }
+
+            if (views is IPlayerView[] playerViews)
+            {
+                int playerCount = playerViews.Length;
+
+                for (int i = 0; i < playerCount; i++)
+                {
+                    // Create each player's model, providing a unique ID for each.
+                    // (Assuming Player class constructor overload: Player(string name, int id))
+                    Player player = new Player($"Player {i + 1}", i);
+                    // Add the player and register the corresponding view with the centralized PlayerController.
+                    _playerController.AddPlayer(player, playerViews[i]);
+                }
+            }
         }
     }
 }

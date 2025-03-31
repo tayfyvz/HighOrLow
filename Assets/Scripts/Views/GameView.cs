@@ -10,14 +10,15 @@ namespace Views
 {
     public class GameView : MonoBehaviour
     {
-        [Header("Prefabs & Containers")]
+        /*[Header("Prefabs & Containers")]
         public GameObject PlayerViewPrefab; // Prefab for PlayerView (assigned via Inspector)
 
         public Transform PlayerViewsContainer; // Parent container for dynamically instantiated PlayerViews
         public GameObject BetButtonPrefab; // Prefab for a bet button (contains a Button component & a Text)
         public Transform BetButtonsContainer; // Parent container for bet button instances
 
-        [Header("Other UI Elements")] public DeckView DeckView; // DeckView assigned via Inspector
+        [Header("Other UI Elements")] 
+        public DeckView DeckView; // DeckView assigned via Inspector
         public BetView BetView; // BetView assigned via Inspector
         public Button PlayRoundButton; // Button to play a round (assigned via Inspector)
 
@@ -85,6 +86,6 @@ namespace Views
         public void OnPlayRoundButtonClick()
         {
             _gameController.PlayRound();
-        }
+        }*/
     }
 }

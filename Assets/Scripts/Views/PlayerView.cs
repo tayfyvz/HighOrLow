@@ -1,10 +1,11 @@
+using Controllers;
 using Models;
 using TMPro;
 using UnityEngine;
 
 namespace Views
 {
-    public class PlayerView : MonoBehaviour
+    public class PlayerView : MonoBehaviour, IPlayerView, IView
     {
         public TextMeshProUGUI PlayerNameText; // Reference assigned via prefab
         public TextMeshProUGUI HandText;       // Reference assigned via prefab

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Views
 {
-    public class DeckView : MonoBehaviour
+    public class DeckView : MonoBehaviour, IDeckView, IView
     {
         [SerializeField]
         private Text deckCountText; // Assign this via the Inspector to a Text UI element.

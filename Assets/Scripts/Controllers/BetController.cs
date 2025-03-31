@@ -2,7 +2,7 @@ using Views;
 
 namespace Controllers
 {
-    public class BetController
+    public class BetController : BaseController<IBetView>, IBetController
     {
         // -1 indicates no bet is active.
         public int CurrentBetIndex { get; private set; } = -1;
@@ -53,7 +53,7 @@ namespace Controllers
             return correct;
         }
 
-        private void UpdateView()
+        protected override void UpdateView()
         {
             if (betView != null)
                 betView.UpdateScore(UserScore);

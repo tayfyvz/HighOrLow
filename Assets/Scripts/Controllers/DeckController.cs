@@ -4,7 +4,7 @@ using Views;
 
 namespace Controllers
 {
-    public class DeckController
+    public class DeckController : BaseController<IDeckView>, IDeckController
     {
         public Deck DeckModel { get; private set; }
         private DeckView deckView; // Reference to the UI view for deck info
@@ -18,16 +18,16 @@ namespace Controllers
         /// <summary>
         /// Attaches the DeckView and updates it.
         /// </summary>
-        public void AttachView(DeckView view)
+        /*public void AttachView(DeckView view)
         {
             deckView = view;
             UpdateView();
-        }
+        }*/
 
         /// <summary>
         /// Call this method after any operation that might have changed the deck.
         /// </summary>
-        public void UpdateView()
+        protected override void UpdateView()
         {
             if (deckView != null)
             {

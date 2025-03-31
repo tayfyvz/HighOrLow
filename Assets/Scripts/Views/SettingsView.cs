@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Views
 {
-    public class SettingsView : MonoBehaviour
+    public class SettingsView : MonoBehaviour, IView
     {
         [Header("Settings UI Elements")]
         [Range(2, 4)]

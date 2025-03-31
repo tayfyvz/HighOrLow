@@ -8,12 +8,14 @@ namespace Models
     public class Player
     {
         public string Name { get; private set; }
+        public int Id { get; private set; }
         public int Score { get; private set; }
         public List<Card> Hand { get; private set; }
         
-        public Player(string name)
+        public Player(string name, int id)
         {
             Name = name;
+            Id = id;
             Score = 0;
             Hand = new List<Card>();
         }

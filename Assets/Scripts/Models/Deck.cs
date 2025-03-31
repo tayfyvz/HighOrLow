@@ -18,9 +18,7 @@ namespace Models
         private List<Card> _cards;
     
         private float _totalWeight;
-    
-        // Dependency injection is used here to pass weight configuration.
-        /// <param name="weightConfig">The configuration object that provides card weights.</param>
+        
         /// <param name="rng">A custom random number generator; if null, a SystemRandomNumberGenerator will be used.</param>
         public Deck(IRandomNumberGenerator rng = null)
         {
