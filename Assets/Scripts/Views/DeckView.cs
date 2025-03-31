@@ -8,7 +8,7 @@ namespace Views
     public class DeckView : MonoBehaviour, IDeckView, IView
     {
         [SerializeField]
-        private Text deckCountText; // Assign this via the Inspector to a Text UI element.
+        private TextMeshProUGUI deckCountText; // Assign this via the Inspector to a Text UI element.
 
         /// <summary>
         /// Updates the deck count display.

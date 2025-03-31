@@ -1,3 +1,4 @@
+using UnityEngine;
 using Views;
 
 namespace Controllers
@@ -8,17 +9,10 @@ namespace Controllers
         public int CurrentBetIndex { get; private set; } = -1;
         public int UserScore { get; private set; } = 0;
 
-        private BetView betView; // Reference to the UI view for bet info
-
         /// <summary>
         /// Attaches the BetView so that this controller updates it.
         /// </summary>
-        public void AttachView(BetView view)
-        {
-            betView = view;
-            UpdateView();
-        }
-
+        
         public void SetBet(int playerIndex)
         {
             if (playerIndex < 0)
@@ -37,15 +31,15 @@ namespace Controllers
         /// </summary>
         public bool EvaluateBet(int winningPlayerIndex, int pointsAwarded)
         {
-            bool correct = (CurrentBetIndex == winningPlayerIndex);
+            bool correct = CurrentBetIndex == winningPlayerIndex;
             if (correct)
             {
                 UserScore += pointsAwarded;
-                System.Console.WriteLine("Bet correct. Score increased by " + pointsAwarded);
+                Debug.LogError("Bet correct. Score increased by " + pointsAwarded);
             }
             else
             {
-                System.Console.WriteLine("Bet incorrect.");
+                Debug.LogError("Bet incorrect.");
             }
 
             CurrentBetIndex = -1;
@@ -55,8 +49,13 @@ namespace Controllers
 
         protected override void UpdateView()
         {
-            if (betView != null)
-                betView.UpdateScore(UserScore);
+            if (View != null)
+            {
+                View.UpdateScore(UserScore);
+                return;
+            }
+            
+            Debug.LogError("bet controller view null");
         }
     }
 }

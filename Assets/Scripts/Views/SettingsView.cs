@@ -18,12 +18,10 @@ namespace Views
         [SerializeField] private Button _applyButton;
         
         private CardsWeightConfig _tempCardsWeightConfig;
-        private SettingsController _settingsController;
 
         private void Awake()
         {
             _tempCardsWeightConfig = Instantiate(_defaultCardsWeightConfig);
-            _settingsController = new SettingsController();
         }
 
         private void OnEnable()
@@ -51,7 +49,7 @@ namespace Views
 
         private void ApplyChanges()
         {
-            _settingsController.SetSettings(_numberOfPlayers,
+            SettingsController.Instance.SetSettings(_numberOfPlayers,
                 _tempCardsWeightConfig.DefaultWeight,
                 _tempCardsWeightConfig.SuitOverrides,
                 _tempCardsWeightConfig.CardOverrides);

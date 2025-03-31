@@ -1,4 +1,5 @@
 using Models;
+using UnityEngine;
 using Utils;
 using Views;
 
@@ -7,7 +8,6 @@ namespace Controllers
     public class DeckController : BaseController<IDeckView>, IDeckController
     {
         public Deck DeckModel { get; private set; }
-        private DeckView deckView; // Reference to the UI view for deck info
 
         public DeckController()
         {
@@ -29,10 +29,13 @@ namespace Controllers
         /// </summary>
         protected override void UpdateView()
         {
-            if (deckView != null)
+            if (View != null)
             {
-                deckView.UpdateDeckCount(DeckModel.RemainingCardsCount);
+                View.UpdateDeckCount(DeckModel.RemainingCardsCount);
+                return;
             }
+            
+            Debug.LogError("deck controller view null");
         }
 
         public Card DrawCard()
@@ -41,7 +44,7 @@ namespace Controllers
             UpdateView();
             return drawn;
         }
-
+        
         public bool HasCards(int count)
         {
             return DeckModel.HasEnoughCards(count);

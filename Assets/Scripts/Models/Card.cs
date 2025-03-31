@@ -30,5 +30,10 @@ namespace Models
             Suit = suit;
             Weight = weight;
         }
+        
+        public override string ToString()
+        {
+            return $"{Rank} of {Suit} (Weight: {Weight:F1})";
+        }
     }
 }

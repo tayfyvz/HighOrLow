@@ -20,7 +20,7 @@ namespace Views
             if (HandText != null)
             {
                 HandText.text = "";
-                foreach (var card in player.Hand)
+                foreach (Card card in player.Hand)
                 {
                     HandText.text += card.ToString() + "\n";
                 }

@@ -1,5 +1,6 @@
 using Controllers;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Views
 {
@@ -11,34 +12,40 @@ namespace Views
         [SerializeField] private BetView _betView;
 
         [SerializeField] private Transform _playerViewsContainer;
+        
+        [SerializeField] private Button _playRoundButton;
+
+        private IGameController _gameController;
 
         private void Start()
         {
             int playerCount = SettingsController.Instance.GetPlayerCount();
 
-            IView[] playerViews = new IView[playerCount];
+            PlayerView[] playerViews = new PlayerView[playerCount];
             
             for (int i = 0; i < playerCount; i++)
             {
                 playerViews[i] = Instantiate(_playerViewPrefab, _playerViewsContainer);
             }
 
-            GameController gameController = new GameController();
+            _gameController = new GameController();
             
-            gameController.PassView(playerViews);
-            gameController.PassView(_deckView);
-            gameController.PassView(_betView);
+            _gameController.PassView(playerViews);
+            _gameController.PassView(_deckView);
+            _gameController.PassView(_betView);
+            
+            _playRoundButton.onClick.AddListener(OnPlayRoundButtonClicked);
 
             /*// Set up the Play Round button.
             playRoundButton.onClick.AddListener(() => gameCtrl.PlayRound());
-
+*/
             // Dynamically create bet buttons corresponding to each player.
-            for (int i = 0; i < playerCount; i++)
+            /*for (int i = 0; i < playerCount; i++)
             {
-                GameObject betBtnObj = Instantiate(betButtonPrefab, betButtonsContainer);
+                GameObject betBtnObj = Instantiate(_betButton, playerViews[i].transform.position, Quaternion.identity, playerViews[i].transform);
                 Button betBtn = betBtnObj.GetComponent<Button>();
                 int index = i;
-                betBtn.onClick.AddListener(() => gameCtrl.SetUserBet(index));
+                betBtn.onClick.AddListener(() => _gameController.SetUserBet(index));
 
                 Text btnText = betBtnObj.GetComponentInChildren<Text>();
                 if (btnText != null)
@@ -46,6 +53,11 @@ namespace Views
                     btnText.text = "Bet on Player " + (i + 1);
                 }
             }*/
+        }
+
+        private void OnPlayRoundButtonClicked()
+        {
+            _gameController.PlayRound();
         }
     }
 }

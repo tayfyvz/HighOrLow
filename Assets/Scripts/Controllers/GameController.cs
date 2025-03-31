@@ -35,12 +35,16 @@ namespace Controllers
         public void PlayRound()
         {
             int n = _playerController.GetPlayerCount();
-            Card[] roundCards = new Card[n];
 
+            if (!_deckController.HasCards(n))
+            {
+                Debug.LogError("Not enough card");
+                _deckController.ResetDeck();
+            }
+            
+            Card[] roundCards = new Card[n];
             for (int i = 0; i < n; i++)
             {
-                if (!_deckController.HasCards(1))
-                    _deckController.ResetDeck();
                 Card card = _deckController.DrawCard();
                 roundCards[i] = card;
                 // Direct the centralized PlayerController to update the appropriate player.
