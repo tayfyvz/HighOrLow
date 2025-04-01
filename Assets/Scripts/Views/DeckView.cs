@@ -1,24 +1,20 @@
 using Controllers;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Views
 {
     public class DeckView : MonoBehaviour, IDeckView, IView
     {
-        [SerializeField]
-        private TextMeshProUGUI deckCountText; // Assign this via the Inspector to a Text UI element.
+        [SerializeField] private TextMeshProUGUI _deckCountText;
 
-        /// <summary>
-        /// Updates the deck count display.
-        /// </summary>
-        /// <param name="count">Number of cards remaining in the deck.</param>
         public void UpdateDeckCount(int count)
         {
-            if (deckCountText != null)
+            if (_deckCountText != null)
             {
-                deckCountText.text = "Cards remaining: " + count;
+                _deckCountText.text = "Cards remaining: " + count;
             }
         }
     }

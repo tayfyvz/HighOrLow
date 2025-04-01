@@ -39,6 +39,9 @@ namespace Controllers
             if (!_deckController.HasCards(n))
             {
                 Debug.LogError("Not enough card");
+                _playerController.MarkSessionWinner();
+                return;
+                
                 _deckController.ResetDeck();
             }
             
@@ -59,7 +62,15 @@ namespace Controllers
                     winningIndex = i;
             }
 
+            _playerController.MarkRoundWinner(winningIndex);
             _betController.EvaluateBet(winningIndex, 10);
+        }
+
+        public void ResetGame()
+        {
+            _deckController.ResetDeck();
+            _playerController.ResetPlayers();
+            _betController.ResetBet();
         }
 
         public void PassView(IView view)
@@ -75,7 +86,7 @@ namespace Controllers
             }
         }
 
-        public void PassView(IView[] views)
+        public void PassView(IView[] views, Vector2[] positions)
         {
             if (views.Length == 0)
             {
@@ -91,6 +102,8 @@ namespace Controllers
                     Player player = new Player($"Player {i + 1}", i);
                     _playerController.AddPlayer(player, playerViews[i]);
                 }
+                
+                _playerController.SetPlayersPosition(positions);
             }
         }
     }

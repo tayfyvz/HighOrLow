@@ -8,6 +8,8 @@ namespace Controllers
         // -1 indicates no bet is active.
         public int CurrentBetIndex { get; private set; } = -1;
         public int UserScore { get; private set; } = 0;
+        
+        private int _comboMultiplier = 1;
 
         /// <summary>
         /// Attaches the BetView so that this controller updates it.
@@ -25,27 +27,47 @@ namespace Controllers
             UpdateView();
         }
 
+        public void ResetBet()
+        {
+            CurrentBetIndex = -1;
+            UserScore = 0;
+            _comboMultiplier = 1;
+            if (View != null)
+            {
+                View.ResetView();
+            }
+            else
+            {
+                Debug.LogError("Bet controller view is null");
+            }
+        }
+
         /// <summary>
         /// Evaluates the bet. Awards the specified points if the bet is correct.
         /// After evaluation, the bet is reset.
         /// </summary>
-        public bool EvaluateBet(int winningPlayerIndex, int pointsAwarded)
+        public bool EvaluateBet(int winningPlayerIndex, int basePoints)
         {
             bool correct = CurrentBetIndex == winningPlayerIndex;
             if (correct)
             {
-                UserScore += pointsAwarded;
-                Debug.LogError("Bet correct. Score increased by " + pointsAwarded);
+                int awardedPoints = basePoints * _comboMultiplier;
+                UserScore += awardedPoints;
+                Debug.Log($"Bet correct. Awarded {basePoints} x {_comboMultiplier} = {awardedPoints} points.");
+                _comboMultiplier++; // Increment combo for subsequent correct bets.
             }
             else
             {
-                Debug.LogError("Bet incorrect.");
+                Debug.Log("Bet incorrect. Combo reset.");
+                _comboMultiplier = 1;
             }
 
+            // Reset the active bet.
             CurrentBetIndex = -1;
             UpdateView();
             return correct;
         }
+
 
         protected override void UpdateView()
         {

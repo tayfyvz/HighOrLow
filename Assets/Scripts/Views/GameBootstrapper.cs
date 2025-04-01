@@ -1,6 +1,8 @@
+using System;
 using Controllers;
 using UnityEngine;
 using UnityEngine.UI;
+using Transform = UnityEngine.Transform;
 
 namespace Views
 {
@@ -11,7 +13,9 @@ namespace Views
         [SerializeField] private DeckView _deckView;
         [SerializeField] private BetView _betView;
 
+        [Header("Player References")]
         [SerializeField] private Transform _playerViewsContainer;
+        [SerializeField] private Transform[] _playerSitPoints;
         
         [SerializeField] private Button _playRoundButton;
 
@@ -27,10 +31,16 @@ namespace Views
             {
                 playerViews[i] = Instantiate(_playerViewPrefab, _playerViewsContainer);
             }
+            
+            Vector2[] playerSitPoints = new Vector2[playerCount];
+            for (int i = 0; i < playerCount; i++)
+            {
+                playerSitPoints[i] = _playerSitPoints[i].position;
+            }
 
             _gameController = new GameController();
             
-            _gameController.PassView(playerViews);
+            _gameController.PassView(playerViews, playerSitPoints);
             _gameController.PassView(_deckView);
             _gameController.PassView(_betView);
             

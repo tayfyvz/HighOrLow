@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Models;
+using UnityEngine;
 using Views;
 
 namespace Controllers
@@ -11,7 +12,7 @@ namespace Controllers
     public class PlayerController : BaseController<IPlayerView>, IPlayerController
     {
         private readonly List<Player> _players = new List<Player>();
-        private readonly Dictionary<int, List<IPlayerView>> _playerViews = new Dictionary<int, List<IPlayerView>>();
+        private readonly Dictionary<int, IPlayerView> _playerViews = new Dictionary<int,IPlayerView>();
 
         /// <summary>
         /// Returns the number of players being controlled.
@@ -30,58 +31,79 @@ namespace Controllers
 
             _players.Add(player);
             if (!_playerViews.ContainsKey(player.Id))
-                _playerViews[player.Id] = new List<IPlayerView>();
+            {
+                _playerViews[player.Id] = view;
+            }
 
-            _playerViews[player.Id].Add(view);
-            // Update the view with the initial state.
-            view.UpdateView(player);
+            view.SetPlayerName(player.Name);
+        }
+
+        public void SetPlayersPosition(Vector2[] positions)
+        {
+            for (int i = 0; i < _players.Count; i++)
+            {
+                if (_playerViews.TryGetValue(i, out var playerView))
+                {
+                    playerView.SetPosition(positions[i]);
+                }
+            }
+        }
+
+        public void MarkRoundWinner(int winningIndex)
+        {
+            if (_players.Count <= winningIndex)
+            {
+                return;
+            }
+            
+            Player player = _players[winningIndex];
+            player.AddScore(1);
+            
+            if (_playerViews.TryGetValue(winningIndex, out var playerView))
+            {
+                playerView.SetScore(player.Score);
+            }
+        }
+
+        public void MarkSessionWinner()
+        {
+            int maxScore = 0;
+            int winnerIndex = -1;
+            foreach (Player player in _players)
+            {
+                if (player.Score > maxScore)
+                {
+                    maxScore = player.Score;
+                    winnerIndex = player.Id;
+                }
+            }
+
+            if (_playerViews.TryGetValue(winnerIndex, out var playerView))
+            {
+                playerView.WinSession();
+            }
+        }
+
+        public void ResetPlayers()
+        {
+            foreach (Player player in _players)
+            {
+                player.Reset();
+                int id = player.Id;
+
+                if (_playerViews.TryGetValue(id, out var playerView))
+                {
+                    playerView.ResetView();
+                }
+                
+            }
         }
 
         public int GetPlayerCount()
         {
             return _players.Count;
         }
-        /// <summary>
-        /// Registers an additional view for the specified player.
-        /// </summary>
-        public void RegisterView(int playerId, IPlayerView view)
-        {
-            if (view == null)
-                throw new ArgumentNullException(nameof(view));
-
-            if (!_playerViews.ContainsKey(playerId))
-            {
-                _playerViews[playerId] = new List<IPlayerView>();
-            }
-
-            if (!_playerViews[playerId].Contains(view))
-            {
-                _playerViews[playerId].Add(view);
-                // Immediately update the new view with the current player state.
-                var player = _players.Find(p => p.Id == playerId);
-                if (player != null)
-                {
-                    view.UpdateView(player);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Removes a registered view for the specified player.
-        /// </summary>
-        public void RemoveView(int playerId, IPlayerView view)
-        {
-            if (view == null)
-                return;
-            if (_playerViews.ContainsKey(playerId))
-            {
-                _playerViews[playerId].Remove(view);
-            }
-        }
-
-        /// <summary>
-        /// Adds a card to the specified player's hand and updates that player's views.
-        /// </summary>
+        
         public void ReceiveCard(int playerId, Card card)
         {
             if (card == null)
@@ -92,35 +114,26 @@ namespace Controllers
                 throw new Exception($"Player with ID {playerId} not found.");
 
             player.AddCard(card);
-            UpdatePlayerViews(player);
+            UpdatePlayerView(player);
         }
-
-        /// <summary>
-        /// Updates all registered views of the given player.
-        /// </summary>
-        private void UpdatePlayerViews(Player player)
+        
+        private void UpdatePlayerView(Player player)
         {
-            if (player == null) return;
-            if (_playerViews.TryGetValue(player.Id, out var views))
+            if (player == null)
             {
-                foreach (var view in views)
-                {
-                    view.UpdateView(player);
-                }
+                return;
             }
+            
+            if (!_playerViews.TryGetValue(player.Id, out var view))
+            {
+                return;
+            }
+            
+            Card lastCard = player.GetLastCard();
+            view.UpdateHand(lastCard);
         }
 
         protected override void UpdateView()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemoveView(IPlayerView view)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ReceiveCard(Card card)
         {
             throw new NotImplementedException();
         }

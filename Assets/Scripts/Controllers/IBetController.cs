@@ -6,6 +6,7 @@ namespace Controllers
     {
         void AttachView(IBetView view);
         void SetBet(int playerIndex);
+        void ResetBet();
         bool EvaluateBet(int winningPlayerIndex, int pointsAwarded);
     }
 }

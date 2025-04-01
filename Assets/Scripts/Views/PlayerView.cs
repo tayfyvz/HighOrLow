@@ -1,30 +1,67 @@
+using System;
 using Controllers;
 using Models;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Views
 {
     public class PlayerView : MonoBehaviour, IPlayerView, IView
     {
-        public TextMeshProUGUI PlayerNameText; // Reference assigned via prefab
-        public TextMeshProUGUI HandText;       // Reference assigned via prefab
+        [SerializeField] private TextMeshProUGUI _playerNameText;
+        [SerializeField] private TextMeshProUGUI _handText;
+        [SerializeField] private TextMeshProUGUI _scoreText;
 
-        public void UpdateView(Player player)
+        private Transform _transform;
+
+        private void Awake()
         {
-            if (player == null) return;
+            _transform = transform;
+        }
 
-            if (PlayerNameText != null)
-                PlayerNameText.text = player.Name;
+        public void SetPlayerName(string name)
+        {
+            if (_playerNameText != null)
+                _playerNameText.text = name;
+        }
 
-            if (HandText != null)
+        public void UpdateHand(Card card)
+        {
+            if (_handText == null)
             {
-                HandText.text = "";
-                foreach (Card card in player.Hand)
-                {
-                    HandText.text += card.ToString() + "\n";
-                }
+                return;
             }
+
+            _handText.text = card.ToString() + "\n";
+            
+            // Add Visual 
+        }
+
+        public void SetPosition(Vector2 position)
+        {
+            _transform.position = position;
+        }
+
+        public void SetScore(int score)
+        {
+            if (_scoreText == null)
+            {
+                return;
+            }
+
+            _scoreText.text = score.ToString();
+        }
+
+        public void WinSession()
+        {
+            Debug.LogError("WIN", this);
+        }
+
+        public void ResetView()
+        {
+            SetScore(0);
+            _handText.text = String.Empty;
         }
     }
 }
