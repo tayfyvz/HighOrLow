@@ -8,6 +8,7 @@ namespace Controllers
         void AttachView(IDeckView view);
         void ResetDeck();
         bool HasCards(int count);
+        bool IsLastRound(int playerCount);
         Card DrawCard();
     }
 }

@@ -53,15 +53,15 @@ namespace Views
             _scoreText.text = score.ToString();
         }
 
-        public void WinSession()
-        {
-            Debug.LogError("WIN", this);
-        }
-
         public void ResetView()
         {
             SetScore(0);
             _handText.text = String.Empty;
+        }
+
+        public Vector2 GetPosition()
+        {
+            return _transform.position;
         }
     }
 }

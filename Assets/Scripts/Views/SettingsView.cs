@@ -1,7 +1,5 @@
-using System;
 using Controllers;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Views

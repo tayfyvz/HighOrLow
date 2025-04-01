@@ -7,15 +7,14 @@ namespace Controllers
 {
     public class GameController : IGameController
     {
-        private readonly IPlayerController _playerController;
-        private readonly IDeckController _deckController;
-        private readonly IBetController _betController;
-
-        public GameController()
+        private readonly IPlayerController _playerController = new PlayerController();
+        private readonly IDeckController _deckController = new DeckController();
+        private readonly IBetController _betController = new BetController();
+        private readonly GameSessionManager _gameSessionManager;
+        
+        public GameController(GameSessionManager gameSessionManager)
         {
-            _deckController = new DeckController();
-            _playerController = new PlayerController();
-            _betController = new BetController();
+            _gameSessionManager = gameSessionManager;
         }
 
         /// <summary>
@@ -25,47 +24,35 @@ namespace Controllers
         {
             _betController.SetBet(playerIndex);
         }
-
-        /// <summary>
-        /// Plays one round:
-        /// 1. Draws one card per player.
-        /// 2. Determines the winning card (by rank then suit).
-        /// 3. Uses BetController to evaluate the bet.
-        /// </summary>
+        
         public void PlayRound()
         {
-            int n = _playerController.GetPlayerCount();
+            int playerCount = _playerController.GetPlayerCount();
 
-            if (!_deckController.HasCards(n))
+            // Validate that we have sufficient cards for the players.
+            if (!IsDeckSufficient(playerCount))
             {
-                Debug.LogError("Not enough card");
-                _playerController.MarkSessionWinner();
+                HandleInsufficientCards();
                 return;
-                
-                _deckController.ResetDeck();
-            }
-            
-            Card[] roundCards = new Card[n];
-            for (int i = 0; i < n; i++)
-            {
-                Card card = _deckController.DrawCard();
-                roundCards[i] = card;
-                // Direct the centralized PlayerController to update the appropriate player.
-                _playerController.ReceiveCard(i, card);
             }
 
-            // Determine the winner by comparing cards.
-            int winningIndex = 0;
-            for (int i = 1; i < n; i++)
-            {
-                if (CardComparer.Compare(roundCards[i], roundCards[winningIndex]) > 0)
-                    winningIndex = i;
-            }
+            bool isLastRound = HasEnoughCards(playerCount);
 
-            _playerController.MarkRoundWinner(winningIndex);
-            _betController.EvaluateBet(winningIndex, 10);
+            // Distribute cards to the players.
+            Card[] roundCards = DistributeCards(playerCount);
+
+            // Determine the winning card.
+            int winningIndex = DetermineWinningIndex(roundCards);
+
+            // Process the round outcome based on the winning index.
+            ProcessRoundOutcome(winningIndex);
+
+            if (isLastRound)
+            {
+                EndGame();
+            }
         }
-
+        
         public void ResetGame()
         {
             _deckController.ResetDeck();
@@ -105,6 +92,67 @@ namespace Controllers
                 
                 _playerController.SetPlayersPosition(positions);
             }
+        }
+
+        public void InitializeBetSystem()
+        {
+            Vector2[] playersPositions = _playerController.GetPlayersPositions();
+            _betController.Initialize(playersPositions);
+        }
+
+        private bool IsDeckSufficient(int playerCount)
+        {
+            return _deckController.HasCards(playerCount);
+        }
+        
+        
+        private bool HasEnoughCards(int playerCount)
+        {
+            return _deckController.IsLastRound(playerCount);
+        }
+        
+        private void HandleInsufficientCards()
+        {
+            Debug.LogError("Not enough cards");
+            EndGame();
+        }
+
+        private void EndGame()
+        {
+            IPlayerView sessionWinner = _playerController.MarkSessionWinner();
+            _gameSessionManager.WinGame(sessionWinner);
+        }
+
+        private Card[] DistributeCards(int playerCount)
+        {
+            Card[] roundCards = new Card[playerCount];
+            for (int i = 0; i < playerCount; i++)
+            {
+                Card card = _deckController.DrawCard();
+                roundCards[i] = card;
+                _playerController.ReceiveCard(i, card);
+            }
+            return roundCards;
+        }
+
+        private int DetermineWinningIndex(Card[] cards)
+        {
+            int winningIndex = 0;
+            for (int i = 1; i < cards.Length; i++)
+            {
+                if (CardComparer.Compare(cards[i], cards[winningIndex]) > 0)
+                {
+                    winningIndex = i;
+                }
+            }
+            return winningIndex;
+        }
+
+        private void ProcessRoundOutcome(int winningIndex)
+        {
+            IPlayerView roundWinner = _playerController.MarkRoundWinner(winningIndex);
+            _gameSessionManager.WinRound(roundWinner);
+            _betController.EvaluateBet(winningIndex, 10);
         }
     }
 }

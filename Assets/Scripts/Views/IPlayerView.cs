@@ -9,7 +9,7 @@ namespace Views
         void UpdateHand(Card card);
         void SetPosition(Vector2 position);
         void SetScore(int score);
-        void WinSession();
         void ResetView();
+        Vector2 GetPosition();
     }
 }

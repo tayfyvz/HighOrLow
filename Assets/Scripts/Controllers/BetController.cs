@@ -11,6 +11,10 @@ namespace Controllers
         
         private int _comboMultiplier = 1;
 
+        public void Initialize(Vector2[] playersPositions)
+        {
+            View.InstantiateBetButtons(playersPositions, SetBet);
+        }
         /// <summary>
         /// Attaches the BetView so that this controller updates it.
         /// </summary>
@@ -23,7 +27,7 @@ namespace Controllers
             }
             
             CurrentBetIndex = playerIndex;
-            System.Console.WriteLine($"User bet set to Player {playerIndex + 1}");
+            Debug.Log($"User bet set to Player {playerIndex + 1}");
             UpdateView();
         }
 
@@ -67,6 +71,8 @@ namespace Controllers
             UpdateView();
             return correct;
         }
+
+        
 
 
         protected override void UpdateView()

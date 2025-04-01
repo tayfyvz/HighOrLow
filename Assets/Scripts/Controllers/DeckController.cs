@@ -15,18 +15,6 @@ namespace Controllers
             DeckModel = new Deck(rng);
         }
 
-        /// <summary>
-        /// Attaches the DeckView and updates it.
-        /// </summary>
-        /*public void AttachView(DeckView view)
-        {
-            deckView = view;
-            UpdateView();
-        }*/
-
-        /// <summary>
-        /// Call this method after any operation that might have changed the deck.
-        /// </summary>
         protected override void UpdateView()
         {
             if (View != null)
@@ -36,6 +24,11 @@ namespace Controllers
             }
             
             Debug.LogError("deck controller view null");
+        }
+
+        public bool IsLastRound(int playerCount)
+        {
+            return (DeckModel.RemainingCardsCount - playerCount) < playerCount;
         }
 
         public Card DrawCard()

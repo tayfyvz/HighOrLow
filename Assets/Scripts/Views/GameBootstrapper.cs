@@ -1,13 +1,14 @@
-using System;
 using Controllers;
 using UnityEngine;
-using UnityEngine.UI;
 using Transform = UnityEngine.Transform;
 
 namespace Views
 {
     public class GameBootstrapper : MonoBehaviour
     {
+        [Header("Game Session Manager")]
+        [SerializeField] private GameSessionManager _gameSessionManager;
+        
         [Header("View References")]
         [SerializeField] private PlayerView _playerViewPrefab;
         [SerializeField] private DeckView _deckView;
@@ -17,8 +18,6 @@ namespace Views
         [SerializeField] private Transform _playerViewsContainer;
         [SerializeField] private Transform[] _playerSitPoints;
         
-        [SerializeField] private Button _playRoundButton;
-
         private IGameController _gameController;
 
         private void Start()
@@ -38,14 +37,15 @@ namespace Views
                 playerSitPoints[i] = _playerSitPoints[i].position;
             }
 
-            _gameController = new GameController();
+            _gameController = new GameController(_gameSessionManager);
             
             _gameController.PassView(playerViews, playerSitPoints);
             _gameController.PassView(_deckView);
             _gameController.PassView(_betView);
+            _gameController.InitializeBetSystem();
             
-            _playRoundButton.onClick.AddListener(OnPlayRoundButtonClicked);
-
+            _gameSessionManager.Initialize(_gameController);
+            
             /*// Set up the Play Round button.
             playRoundButton.onClick.AddListener(() => gameCtrl.PlayRound());
 */
@@ -63,11 +63,6 @@ namespace Views
                     btnText.text = "Bet on Player " + (i + 1);
                 }
             }*/
-        }
-
-        private void OnPlayRoundButtonClicked()
-        {
-            _gameController.PlayRound();
         }
     }
 }

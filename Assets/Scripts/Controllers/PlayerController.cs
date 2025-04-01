@@ -49,23 +49,26 @@ namespace Controllers
             }
         }
 
-        public void MarkRoundWinner(int winningIndex)
+        public IPlayerView MarkRoundWinner(int winningIndex)
         {
             if (_players.Count <= winningIndex)
             {
-                return;
+                return null;
             }
             
             Player player = _players[winningIndex];
             player.AddScore(1);
-            
-            if (_playerViews.TryGetValue(winningIndex, out var playerView))
+
+            if (!_playerViews.TryGetValue(winningIndex, out var playerView))
             {
-                playerView.SetScore(player.Score);
+                return null;
             }
+            
+            playerView.SetScore(player.Score);
+            return playerView;
         }
 
-        public void MarkSessionWinner()
+        public IPlayerView MarkSessionWinner()
         {
             int maxScore = 0;
             int winnerIndex = -1;
@@ -78,10 +81,7 @@ namespace Controllers
                 }
             }
 
-            if (_playerViews.TryGetValue(winnerIndex, out var playerView))
-            {
-                playerView.WinSession();
-            }
+            return _playerViews.GetValueOrDefault(winnerIndex);
         }
 
         public void ResetPlayers()
@@ -103,7 +103,21 @@ namespace Controllers
         {
             return _players.Count;
         }
-        
+
+        public Vector2[] GetPlayersPositions()
+        {
+            Vector2[] positions = new Vector2[_players.Count];
+            for (int i = 0; i < _players.Count; i++)
+            {
+                if (_playerViews.TryGetValue(i, out var playerView))
+                {
+                    positions[i] = playerView.GetPosition();
+                }
+            }
+            
+            return positions;
+        }
+
         public void ReceiveCard(int playerId, Card card)
         {
             if (card == null)

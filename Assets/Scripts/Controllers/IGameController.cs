@@ -10,5 +10,6 @@ namespace Controllers
         void ResetGame();
         void PassView(IView view);
         void PassView(IView[] views, Vector2[] positions);
+        void InitializeBetSystem();
     }
 }
