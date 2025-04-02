@@ -1,4 +1,6 @@
+using System.Threading;
 using Controllers;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,9 +15,11 @@ namespace Views
         [Header("GameObject References")]
         [SerializeField] private GameObject _drawCardButtonObj;
         [SerializeField] private GameObject _newGameButtonObj;
-
+        
         private IGameController _gameController;
 
+        private readonly SemaphoreSlim _roundLock = new SemaphoreSlim(1, 1);
+        
         private void Start()
         {
             if (_drawCardButtonObj == null && _drawCardButton != null)
@@ -44,9 +48,33 @@ namespace Views
             _newGameButton.onClick.RemoveListener(OnNewGameClicked);
         }
         
-        private void OnDrawCardClicked()
+        private async void OnDrawCardClicked()
         {
-            _gameController?.PlayRound();
+            if (!await _roundLock.WaitAsync(0))
+            {
+                Debug.Log("Round already in progress, ignoring extra click.");
+                return;
+            }
+
+            try
+            {
+                // Retrieve a cancellation token from this MonoBehaviour.
+                CancellationToken cancellationToken = this.GetCancellationTokenOnDestroy();
+                
+                if (_gameController != null)
+                {
+                    await _gameController.PlayRoundAsync(cancellationToken);
+                }
+                else
+                {
+                    Debug.LogWarning("Game controller is not set.");
+                }
+            }
+            finally
+            {
+                // Always ensure the lock is released.
+                _roundLock.Release();
+            }
         }
         
         private void OnNewGameClicked()
@@ -61,7 +89,7 @@ namespace Views
             _drawCardButtonObj.SetActive(true);
         }
         
-        public void WinGame(IPlayerView winner)
+        public void WinGame()
         {
             _drawCardButtonObj.SetActive(false);
             
@@ -73,7 +101,7 @@ namespace Views
             _newGameButtonObj.SetActive(true);
         }
 
-        public void WinRound(IPlayerView roundWinner)
+        public void WinRound()
         {
             _drawCardButtonObj.SetActive(false);
 

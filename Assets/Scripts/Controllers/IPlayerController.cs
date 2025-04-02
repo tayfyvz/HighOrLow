@@ -9,8 +9,8 @@ namespace Controllers
         void AddPlayer(Player player, IPlayerView view);
         void SetPlayersPosition(Vector2[] positions);
         void ReceiveCard(int playerId, Card card);
-        IPlayerView MarkRoundWinner(int winningIndex);
-        IPlayerView MarkSessionWinner();
+        void MarkRoundWinner(int winningIndex);
+        int MarkSessionWinner();
         void ResetPlayers();
         int GetPlayerCount();
         Vector2[] GetPlayersPositions();

@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Models;
 using UnityEngine;
 using Utils;
@@ -10,26 +13,19 @@ namespace Controllers
         private readonly IPlayerController _playerController = new PlayerController();
         private readonly IDeckController _deckController = new DeckController();
         private readonly IBetController _betController = new BetController();
+        private readonly IAnimationController _animationController;
         private readonly GameSessionManager _gameSessionManager;
         
-        public GameController(GameSessionManager gameSessionManager)
+        public GameController(GameSessionManager gameSessionManager, IAnimationController animationController)
         {
             _gameSessionManager = gameSessionManager;
+            _animationController = animationController;
         }
 
-        /// <summary>
-        /// Sets the user's bet based on the provided player index.
-        /// </summary>
-        public void SetUserBet(int playerIndex)
-        {
-            _betController.SetBet(playerIndex);
-        }
-        
-        public void PlayRound()
+        public async UniTask PlayRoundAsync(CancellationToken cancellationToken)
         {
             int playerCount = _playerController.GetPlayerCount();
 
-            // Validate that we have sufficient cards for the players.
             if (!IsDeckSufficient(playerCount))
             {
                 HandleInsufficientCards();
@@ -40,17 +36,25 @@ namespace Controllers
 
             // Distribute cards to the players.
             Card[] roundCards = DistributeCards(playerCount);
+            await _animationController.AnimateCardDistributionAsync(roundCards, cancellationToken);
 
             // Determine the winning card.
             int winningIndex = DetermineWinningIndex(roundCards);
-
-            // Process the round outcome based on the winning index.
-            ProcessRoundOutcome(winningIndex);
-
+            
+            _playerController.MarkRoundWinner(winningIndex);
+            _gameSessionManager.WinRound();
+            await _animationController.AnimateRoundWinningAsync(winningIndex, cancellationToken);
+            
+            BetResult betResult = _betController.EvaluateBet(winningIndex, 10);
+            await _animationController.AnimateBetResultAsync(betResult, winningIndex, cancellationToken);
+            
             if (isLastRound)
             {
-                EndGame();
+                int winnerIndex = EndGame();
+                await _animationController.AnimateSessionWinningAsync(winnerIndex, cancellationToken);
             }
+
+            Debug.LogError("Ready for new round");
         }
         
         public void ResetGame()
@@ -117,10 +121,10 @@ namespace Controllers
             EndGame();
         }
 
-        private void EndGame()
+        private int EndGame()
         {
-            IPlayerView sessionWinner = _playerController.MarkSessionWinner();
-            _gameSessionManager.WinGame(sessionWinner);
+            _gameSessionManager.WinGame();
+            return _playerController.MarkSessionWinner();
         }
 
         private Card[] DistributeCards(int playerCount)
@@ -146,13 +150,6 @@ namespace Controllers
                 }
             }
             return winningIndex;
-        }
-
-        private void ProcessRoundOutcome(int winningIndex)
-        {
-            IPlayerView roundWinner = _playerController.MarkRoundWinner(winningIndex);
-            _gameSessionManager.WinRound(roundWinner);
-            _betController.EvaluateBet(winningIndex, 10);
         }
     }
 }

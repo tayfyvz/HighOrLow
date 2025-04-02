@@ -37,7 +37,9 @@ namespace Views
                 playerSitPoints[i] = _playerSitPoints[i].position;
             }
 
-            _gameController = new GameController(_gameSessionManager);
+            IAnimationController animationController = new AnimationController(playerViews, _deckView, _betView);
+            
+            _gameController = new GameController(_gameSessionManager, animationController);
             
             _gameController.PassView(playerViews, playerSitPoints);
             _gameController.PassView(_deckView);

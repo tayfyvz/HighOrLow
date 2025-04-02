@@ -49,11 +49,11 @@ namespace Controllers
             }
         }
 
-        public IPlayerView MarkRoundWinner(int winningIndex)
+        public void MarkRoundWinner(int winningIndex)
         {
             if (_players.Count <= winningIndex)
             {
-                return null;
+                return ;
             }
             
             Player player = _players[winningIndex];
@@ -61,14 +61,13 @@ namespace Controllers
 
             if (!_playerViews.TryGetValue(winningIndex, out var playerView))
             {
-                return null;
+                return ;
             }
             
             playerView.SetScore(player.Score);
-            return playerView;
         }
 
-        public IPlayerView MarkSessionWinner()
+        public int MarkSessionWinner()
         {
             int maxScore = 0;
             int winnerIndex = -1;
@@ -81,7 +80,7 @@ namespace Controllers
                 }
             }
 
-            return _playerViews.GetValueOrDefault(winnerIndex);
+            return winnerIndex;
         }
 
         public void ResetPlayers()

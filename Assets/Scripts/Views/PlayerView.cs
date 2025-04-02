@@ -1,9 +1,7 @@
 using System;
-using Controllers;
 using Models;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Views
 {
