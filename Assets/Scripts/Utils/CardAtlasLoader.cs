@@ -1,63 +1,56 @@
-using Models;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.U2D;
+using Models;
 
 namespace Utils
 {
-    /// <summary>
-    /// Loads a Sprite Atlas via Addressables and provides a helper method to retrieve a specific card sprite.
-    /// </summary>
-    public class CardAtlasLoader : MonoBehaviour
+    public class CardAtlasLoader : BaseAddressableLoader<SpriteAtlas>
     {
-        [Tooltip("The unique address of the Sprite Atlas as set in the Addressables system.")]
-        [SerializeField]
-        private string atlasAddress = "CardAtlas";
+        private const string AssetAddress = "CardAtlas";
+        private const string CardBackAddress = "CardBack";
 
-        private SpriteAtlas cardAtlas;
+        private SpriteAtlas _cardAtlas;
 
-        /// <summary>
-        /// Initiates the loading of the Sprite Atlas.
-        /// </summary>
-        public void LoadCardAtlas()
+        public override async UniTask<SpriteAtlas> LoadAsync()
         {
-            Addressables.LoadAssetAsync<SpriteAtlas>(atlasAddress)
-                .Completed += OnAtlasLoaded;
-        }
+            AsyncOperationHandle<SpriteAtlas> atlasHandle = Addressables.LoadAssetAsync<SpriteAtlas>(AssetAddress);
+            handle = atlasHandle;
+            _cardAtlas = await atlasHandle.Task;
 
-        /// <summary>
-        /// Callback when the Sprite Atlas has finished loading.
-        /// </summary>
-        /// <param name="handle">The async operation's handle.</param>
-        private void OnAtlasLoaded(AsyncOperationHandle<SpriteAtlas> handle)
-        {
-            if (handle.Status == AsyncOperationStatus.Succeeded)
+            if (_cardAtlas == null)
             {
-                cardAtlas = handle.Result;
-                Debug.Log("Sprite Atlas loaded successfully!");
+                Debug.LogError($"Failed to load Sprite Atlas at address: {AssetAddress}");
             }
             else
             {
-                Debug.LogError("Failed to load the Sprite Atlas.");
+                Debug.Log("Cards Sprite Atlas loaded successfully!");
+            }
+            
+            return _cardAtlas;
+        }
+
+        public override void Release()
+        {
+            if (handle.IsValid())
+            {
+                Addressables.Release(handle);
             }
         }
 
-        /// <summary>
-        /// Retrieves the sprite corresponding to the given card.
-        /// </summary>
-        /// <param name="card">The card for which to retrieve the sprite.</param>
-        /// <returns>The matching sprite if found; otherwise, null.</returns>
         public Sprite GetCardSprite(Card card)
         {
-            if (cardAtlas == null)
+            if (_cardAtlas == null)
             {
                 Debug.LogWarning("Atlas is not loaded yet.");
                 return null;
             }
 
-            string spriteName = GetSpriteName(card); // Generate the expected sprite name.
-            Sprite sprite = cardAtlas.GetSprite(spriteName);
+            string spriteName = GetSpriteName(card);
+            Sprite sprite = _cardAtlas.GetSprite(spriteName);
+            
             if (sprite == null)
             {
                 Debug.LogWarning($"Sprite not found: {spriteName}");
@@ -66,51 +59,43 @@ namespace Utils
             {
                 Debug.Log($"Sprite found: {spriteName}");
             }
-
+            
             return sprite;
         }
-        
+
         public Sprite GetCardBackSprite()
         {
-            if (cardAtlas == null)
+            if (_cardAtlas == null)
             {
                 Debug.LogWarning("Atlas is not loaded yet.");
                 return null;
             }
-    
-            string spriteName = "CardBack";
-            Sprite sprite = cardAtlas.GetSprite(spriteName);
+
+            Sprite sprite = _cardAtlas.GetSprite(CardBackAddress);
             if (sprite == null)
-                Debug.LogWarning($"Card back sprite not found: {spriteName}");
+            {
+                Debug.LogWarning($"Card back sprite not found: {CardBackAddress}");
+            }
             else
-                Debug.Log($"Card back sprite found: {spriteName}");
-    
+            {
+                Debug.Log($"Card back sprite found: {CardBackAddress}");
+            }
+            
             return sprite;
         }
-
-
-        /// <summary>
-        /// Constructs the sprite name based on the card's properties.
-        /// </summary>
-        /// <param name="card">The card model.</param>
-        /// <returns>The formatted sprite name, e.g., "01_A_C".</returns>
+        
         private string GetSpriteName(Card card)
         {
             int index = ((int)card.Suit - 1) * 13 + (int)card.Rank;
             string indexStr = index.ToString("D2");
 
-            string rankAbbrev = GetRankAbbreviation(card.Rank);
-            string suitAbbrev = GetSuitAbbreviation(card.Suit);
+            string rankStr = GetRankString(card.Rank);
+            string suitStr = GetSuitString(card.Suit);
 
-            return $"{indexStr}_{rankAbbrev}_{suitAbbrev}";
+            return $"{indexStr}_{rankStr}_{suitStr}";
         }
 
-        /// <summary>
-        /// Returns the abbreviation for the given card rank.
-        /// </summary>
-        /// <param name="rank">The card rank.</param>
-        /// <returns>The rank abbreviation.</returns>
-        private string GetRankAbbreviation(Ranks rank)
+        private string GetRankString(Ranks rank)
         {
             switch (rank)
             {
@@ -131,12 +116,7 @@ namespace Utils
             }
         }
 
-        /// <summary>
-        /// Returns the abbreviation for the given suit.
-        /// </summary>
-        /// <param name="suit">The card suit.</param>
-        /// <returns>The suit abbreviation.</returns>
-        private string GetSuitAbbreviation(Suits suit)
+        private string GetSuitString(Suits suit)
         {
             switch (suit)
             {
@@ -146,11 +126,6 @@ namespace Utils
                 case Suits.Spades: return "S";
                 default: return "";
             }
-        }
-
-        private void Start()
-        {
-            LoadCardAtlas();
         }
     }
 }

@@ -540,7 +540,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gameSessionManager: {fileID: 1180665537}
-  _playerViewPrefab: {fileID: 952211202951305846, guid: 73ee6b9663f34a44ca9735f850aa5fc8, type: 3}
   _deckView: {fileID: 346262786}
   _betView: {fileID: 213554588}
   _playerViewsContainer: {fileID: 1146274291}

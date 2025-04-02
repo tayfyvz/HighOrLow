@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 654c87cfe9d68e14687e401944a0d552
   m_currentHash:
     serializedVersion: 2
-    Hash: b9184d8cbfe349164345f6c4893c60b9
+    Hash: 00000000000000000000000000000000
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_BundleLocalCatalog: 0
@@ -46,6 +46,7 @@ MonoBehaviour:
   m_GroupAssets:
   - {fileID: 11400000, guid: c8670a0790b6c3d4eaa8a4219add0681, type: 2}
   - {fileID: 11400000, guid: a627d20ff69ff7f4cb648661b8cbbdfe, type: 2}
+  - {fileID: 11400000, guid: f03e2f5a427ba0b48a7ac504e0f47708, type: 2}
   - {fileID: 11400000, guid: 41ebc696a77bd3b4cb5f75c5f33ce182, type: 2}
   m_BuildSettings:
     m_CompileScriptsInVirtualMode: 0
@@ -89,6 +90,7 @@ MonoBehaviour:
     m_LabelNames:
     - default
     - CardAtlas
+    - Player
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 47d6939d4814c8a408c4f90f0c5c58b2, type: 2}

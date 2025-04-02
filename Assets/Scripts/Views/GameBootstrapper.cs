@@ -1,5 +1,8 @@
+using System;
 using Controllers;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Utils;
 using Transform = UnityEngine.Transform;
 
 namespace Views
@@ -10,7 +13,6 @@ namespace Views
         [SerializeField] private GameSessionManager _gameSessionManager;
         
         [Header("View References")]
-        [SerializeField] private PlayerView _playerViewPrefab;
         [SerializeField] private DeckView _deckView;
         [SerializeField] private BetView _betView;
 
@@ -19,16 +21,40 @@ namespace Views
         [SerializeField] private Transform[] _playerSitPoints;
         
         private IGameController _gameController;
-
+        private PlayerLoader _playerViewLoader;
+        
         private void Start()
+        {
+            _ = Initialize();
+        }
+
+        private void OnDestroy()
+        {
+            if (_playerViewLoader == null)
+            {
+                return;
+            }
+            
+            _playerViewLoader.Release();
+            _playerViewLoader = null;
+        }
+
+        private async UniTask Initialize()
         {
             int playerCount = SettingsController.Instance.GetPlayerCount();
 
             PlayerView[] playerViews = new PlayerView[playerCount];
+            _playerViewLoader = new PlayerLoader();
             
             for (int i = 0; i < playerCount; i++)
             {
-                playerViews[i] = Instantiate(_playerViewPrefab, _playerViewsContainer);
+                PlayerView playerView = await _playerViewLoader.LoadAsync();
+                
+                if (playerView != null)
+                {
+                    playerView.transform.SetParent(_playerViewsContainer);
+                }
+                playerViews[i] = playerView;
             }
             
             Vector2[] playerSitPoints = new Vector2[playerCount];
@@ -47,24 +73,6 @@ namespace Views
             _gameController.InitializeBetSystem();
             
             _gameSessionManager.Initialize(_gameController);
-            
-            /*// Set up the Play Round button.
-            playRoundButton.onClick.AddListener(() => gameCtrl.PlayRound());
-*/
-            // Dynamically create bet buttons corresponding to each player.
-            /*for (int i = 0; i < playerCount; i++)
-            {
-                GameObject betBtnObj = Instantiate(_betButton, playerViews[i].transform.position, Quaternion.identity, playerViews[i].transform);
-                Button betBtn = betBtnObj.GetComponent<Button>();
-                int index = i;
-                betBtn.onClick.AddListener(() => _gameController.SetUserBet(index));
-
-                Text btnText = betBtnObj.GetComponentInChildren<Text>();
-                if (btnText != null)
-                {
-                    btnText.text = "Bet on Player " + (i + 1);
-                }
-            }*/
         }
     }
 }
