@@ -4,7 +4,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Views;
 
-namespace Utils
+namespace Utils.AddressableLoaders
 {
     public class PlayerLoader : BaseAddressableLoader<PlayerView>
     {
@@ -35,9 +35,23 @@ namespace Utils
 
         public override void Release()
         {
+            // Check if the handle is valid
             if (handle.IsValid())
             {
-                Addressables.ReleaseInstance((GameObject)handle.Result);
+                // Check if the result is a valid GameObject before releasing it
+                if (handle.Result != null)
+                {
+                    Addressables.ReleaseInstance((GameObject)handle.Result);
+                    Debug.Log("Player prefab instance released successfully.");
+                }
+                else
+                {
+                    Debug.LogWarning("Attempting to release a null Addressable instance.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Attempting to release an invalid Addressable handle.");
             }
         }
     }

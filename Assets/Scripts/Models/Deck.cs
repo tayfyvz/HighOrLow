@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Controllers;
+using Managers;
 using Utils;
 
 namespace Models
@@ -40,7 +41,7 @@ namespace Models
             {
                 foreach (Ranks rank in ranks)
                 {
-                    float weight = SettingsController.Instance.GetCardWeight(suit, rank);
+                    float weight = SettingsManager.Instance.GetCardWeight(suit, rank);
                     _cards.Add(new Card(rank, suit, weight));
                     _totalWeight += weight;
                 }

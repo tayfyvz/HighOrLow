@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace Utils
+namespace Utils.AddressableLoaders
 {
     public abstract class BaseAddressableLoader<T>
     {

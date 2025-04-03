@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Models;
@@ -54,7 +53,7 @@ namespace Controllers
                 await _animationController.AnimateSessionWinningAsync(winnerIndex, cancellationToken);
             }
 
-            Debug.LogError("Ready for new round");
+            Debug.Log("Ready for new round");
         }
         
         public void ResetGame()

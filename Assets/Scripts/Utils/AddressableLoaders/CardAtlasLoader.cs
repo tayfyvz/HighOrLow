@@ -1,11 +1,11 @@
 using Cysharp.Threading.Tasks;
+using Models;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.U2D;
-using Models;
 
-namespace Utils
+namespace Utils.AddressableLoaders
 {
     public class CardAtlasLoader : BaseAddressableLoader<SpriteAtlas>
     {

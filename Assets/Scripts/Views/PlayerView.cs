@@ -2,6 +2,7 @@ using System;
 using Models;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Views
 {
@@ -10,6 +11,7 @@ namespace Views
         [SerializeField] private TextMeshProUGUI _playerNameText;
         [SerializeField] private TextMeshProUGUI _handText;
         [SerializeField] private TextMeshProUGUI _scoreText;
+        [SerializeField] private Image _playerImage;
 
         private Transform _transform;
 
@@ -60,6 +62,16 @@ namespace Views
         public Vector2 GetPosition()
         {
             return _transform.position;
+        }
+
+        public void SetSprite(Sprite playerSprite)
+        {
+            if (_playerImage == null)
+            {
+                return;
+            }
+            
+            _playerImage.sprite = playerSprite;
         }
     }
 }

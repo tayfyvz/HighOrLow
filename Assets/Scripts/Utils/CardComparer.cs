@@ -2,6 +2,10 @@ using Models;
 
 namespace Utils
 {
+    namespace Utils
+    {
+    }
+
     public static class CardComparer
     {
         /// <summary>

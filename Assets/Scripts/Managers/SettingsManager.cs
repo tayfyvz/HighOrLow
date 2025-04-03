@@ -1,30 +1,32 @@
 using System.Collections.Generic;
 using Models;
 
-namespace Controllers
+namespace Managers
 {
-    public class SettingsController
+    namespace Managers
     {
-        private static SettingsController _instance;
-        public static SettingsController Instance
+    }
+
+    public class SettingsManager
+    {
+        private static SettingsManager _instance;
+        public static SettingsManager Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    _instance = new SettingsController();
+                    _instance = new SettingsManager();
                 }
                 return _instance;
             }
         }
         
         private readonly Settings _settings = new();
-        private bool _isInitialized;
 
         public void SetSettings(int numOfPlayers, float defaultWeight, List<SuitOverrideData> suitOverrides, List<CardOverrideData> cardOverrides)
         {
             _settings.Set(numOfPlayers, defaultWeight, suitOverrides, cardOverrides);
-            _isInitialized = true;
         }
 
         public int GetPlayerCount()
@@ -42,11 +44,6 @@ namespace Controllers
         public float GetCardWeight(Suits suit, Ranks rank)
         {
             return _settings.GetCardWeight(suit, rank);
-        }
-
-        public bool IsSettingsReady()
-        {
-            return _isInitialized;
         }
     }
 }

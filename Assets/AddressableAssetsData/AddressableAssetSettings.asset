@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 654c87cfe9d68e14687e401944a0d552
   m_currentHash:
     serializedVersion: 2
-    Hash: 00000000000000000000000000000000
+    Hash: 7a4a23d631fdf4b876d698a3425f2ca2
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_BundleLocalCatalog: 0
@@ -45,7 +45,11 @@ MonoBehaviour:
   m_overridePlayerVersion: '[UnityEditor.PlayerSettings.bundleVersion]'
   m_GroupAssets:
   - {fileID: 11400000, guid: c8670a0790b6c3d4eaa8a4219add0681, type: 2}
+  - {fileID: 11400000, guid: 092a17cb80fee994c87a9244dad12163, type: 2}
   - {fileID: 11400000, guid: a627d20ff69ff7f4cb648661b8cbbdfe, type: 2}
+  - {fileID: 11400000, guid: 40033ce693256724d8736b771bdf9c2d, type: 2}
+  - {fileID: 11400000, guid: fd56abbf5aa25c649a31976ed7dc1e80, type: 2}
+  - {fileID: 11400000, guid: f5ae708efb86c7b44924de9721401584, type: 2}
   - {fileID: 11400000, guid: f03e2f5a427ba0b48a7ac504e0f47708, type: 2}
   - {fileID: 11400000, guid: 41ebc696a77bd3b4cb5f75c5f33ce182, type: 2}
   m_BuildSettings:
@@ -91,6 +95,11 @@ MonoBehaviour:
     - default
     - CardAtlas
     - Player
+    - Bet
+    - UIAtlas
+    - Loading
+    - Sound
+    - PlayersAtlas
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 47d6939d4814c8a408c4f90f0c5c58b2, type: 2}
