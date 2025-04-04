@@ -18,7 +18,7 @@ MonoBehaviour:
   m_GUID: 993a6f416700f8f4e9c8883275c918a8
   m_SerializeEntries:
   - m_GUID: e3b8327845be86c49bd6a8a669f4e6dc
-    m_Address: BetButtonPrefabAddress
+    m_Address: BetButtonViewPrefabAddress
     m_ReadOnly: 0
     m_SerializedLabels:
     - Bet

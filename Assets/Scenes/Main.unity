@@ -601,6 +601,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetCanvas: {fileID: 890332682}
+  enableLogging: 0
 --- !u!1 &1453832125
 GameObject:
   m_ObjectHideFlags: 0

@@ -337,6 +337,7 @@ MonoBehaviour:
   _scoreChangeDuration: 1.5
   _comboMultiplierPunchDuration: 1
   _awardedScoreMovementDuration: 1.5
+  _betButtonMovementDuration: 0.3
   _awardedScoreMovementEase: 30
   _comboMultiplierPunchVector: {x: 0.5, y: 0.5, z: 0}
 --- !u!1 &288633879

@@ -11,8 +11,9 @@ namespace Views
         void UpdateScore(int score);
         void ResetView();
         UniTask PlayWinBetAnimSeq(int resultComboMultiplier, int resultAwardedPoints, CancellationToken cancellationToken);
-        UniTask PlayLoseBetAnimSeq(bool isBet, CancellationToken cancellationToken);
+        UniTask PlayLoseBetAnimSeq(int resultComboMultiplier, CancellationToken cancellationToken);
         void ResetBet();
         void DeactivateButtonsExcept(int playerIndex);
+        void DeactivateButtons();
     }
 }

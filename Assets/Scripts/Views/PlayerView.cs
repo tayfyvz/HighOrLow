@@ -6,7 +6,6 @@ using Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Logger = Utils.Logger;
 
 namespace Views
 {
@@ -34,11 +33,30 @@ namespace Views
 
         [Header("Animations References")]
         [SerializeField] private float _textAnimationDuration = 0.1f;
+        [SerializeField] private float _scoreTextScaleDuration = 0.2f;
+        [SerializeField] private float _scoreTextReScaleDuration = 0.3f;
+        [SerializeField] private float _scoreTextColorDur = 0.2f;
+        [SerializeField] private float _imageScaleDuration = 0.3f;
+        [SerializeField] private float _imageReScaleDuration = 0.2f;
+        
         [SerializeField] private Color _textOriginalColor;
         [SerializeField] private Color _textWinColor;
 
+        [SerializeField] private Vector3 PosRotate = new Vector3(0, 0, 30f);
+        [SerializeField] private Vector3 NegRotate = new Vector3(0, 0, -30f);
+        [SerializeField] private Vector3 _playerImageRotate = new Vector3(0, 720, 0);
+        
+        [SerializeField] private Ease _playerImageRotateEase = Ease.OutQuad;
+        [SerializeField] private Ease _playerImageScaleEase = Ease.InBounce;
+        [SerializeField] private Ease _scoreTextScaleEase = Ease.OutBack;
+        [SerializeField] private Ease _imageScaleEase = Ease.OutBounce;
+        
         private Transform _transform;
         private string _text;
+        
+        private const string WinText = "Win!";
+        private static readonly Vector3 ScoreScaleVector = (1.5f * Vector3.one);
+        private static readonly Vector3 ImageScaleVector = (1.3f * Vector3.one);
 
         private void Awake()
         {
@@ -91,30 +109,40 @@ namespace Views
 
         public async UniTask PlayWinScoreAnim()
         {
-            if (_scoreText == null)
-            {
-                Logger.Log("Score text is not set.", LogType.Warning);
-                return;
-            }
+            Sequence winSequence = DOTween.Sequence();
 
-            SoundManager.Instance.PlaySound(SoundType.RoundEnd);
-            _scoreText.DOColor(_textWinColor, 0.5f).OnComplete(() => _scoreText.DOColor(_textOriginalColor, 0.5f));
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+            winSequence.Append(_scoreTextTransform.DOScale(ScoreScaleVector, _scoreTextScaleDuration).SetEase(_scoreTextScaleEase));
+            winSequence.Join(_scoreText.DOColor(_textWinColor, _scoreTextColorDur));
+
+            winSequence.Join(_playerImageTransform.DOScale(ImageScaleVector, _imageScaleDuration).SetEase(_imageScaleEase));
+            winSequence.Append(_playerImageTransform.DOScale(Vector3.one, _imageReScaleDuration).SetEase(Ease.InQuad));
+
+            winSequence.Append(_scoreTextTransform.DORotate(PosRotate, 0.2f).SetEase(Ease.OutCubic));
+            winSequence.JoinCallback((() => SoundManager.Instance.PlaySound(SoundType.RoundEnd)));
+            winSequence.Append(_scoreTextTransform.DORotate(NegRotate, 0.2f).SetEase(Ease.InCubic));
+            winSequence.Append(_scoreTextTransform.DORotate(Vector3.zero, 0.1f));
+
+            winSequence.Append(_scoreTextTransform.DOScale(Vector3.one, _scoreTextReScaleDuration).SetEase(Ease.OutBounce));
+            winSequence.Append(_scoreText.DOColor(_textOriginalColor, _scoreTextReScaleDuration));
+
+            await UniTask.Delay(TimeSpan.FromSeconds(1f));
         }
-
+        
         public async UniTask PlayWinSessionAnim()
         {
-            if (_playerImage == null)
+            SoundManager.Instance.PlaySound(SoundType.GameEnd);
+            Sequence winSequence = DOTween.Sequence();
+            winSequence.Append(_playerImageTransform.DORotate(_playerImageRotate, 1f, RotateMode.FastBeyond360).SetEase(_playerImageRotateEase));
+            winSequence.Append(_playerImageTransform.DOScale(ScoreScaleVector, 0.5f).SetEase(_imageScaleEase));
+            winSequence.Append(_playerImageTransform.DOScale(Vector3.one, _imageScaleDuration).SetEase(_playerImageScaleEase));
+
+            if (_scoreText != null)
             {
-                Logger.Log("Player image is not set.", LogType.Warning);
-                return;
+                _scoreText.text = WinText;
+                _scoreText.DOColor(_textWinColor, _scoreTextReScaleDuration).SetLoops(2, LoopType.Yoyo);
             }
 
-            SoundManager.Instance.PlaySound(SoundType.GameEnd);
-            _playerImageTransform.DORotate(new Vector3(0, 360, 0), 1f, RotateMode.FastBeyond360).SetEase(Ease.OutQuad);
-            _playerImageTransform.DOScale(Vector3.one * 1.2f, 0.5f).SetEase(Ease.OutBounce);
-            _playerImageTransform.DOScale(Vector3.one, 0.5f).SetEase(Ease.InBounce);
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+            await UniTask.Delay(TimeSpan.FromSeconds(2f));
         }
 
         public Transform GetTransform() => _transform ??= transform;

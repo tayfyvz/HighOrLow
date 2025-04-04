@@ -9,7 +9,7 @@ namespace Utils
         // Addressables Address
         public const string ADDRESS_LOADING_PREFAB = "LoadingPrefab";
         public const string PLAYERS_ATLAS = "PlayersAtlas";
-        public const string BET_BUTTON_PREFAB_ADDRESS = "BetButtonPrefabAddress";
+        public const string BET_BUTTON_PREFAB_ADDRESS = "BetButtonViewPrefabAddress";
         public const string PLAYER_PREFAB_ADDRESS = "PlayerPrefabAddress";
         public const string CARD_ATLAS = "CardAtlas";
         public const string CARD_BACK_ADDRESS = "CardBack";

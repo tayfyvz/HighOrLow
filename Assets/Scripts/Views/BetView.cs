@@ -7,7 +7,6 @@ using Managers;
 using Managers.Managers;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using Utils.AddressableLoaders;
 using Logger = Utils.Logger;
 
@@ -36,10 +35,12 @@ namespace Views
         [SerializeField] private float _scoreChangeDuration = 0.5f;
         [SerializeField] private float _comboMultiplierPunchDuration = 0.3f;
         [SerializeField] private float _awardedScoreMovementDuration = 0.3f;
+        [SerializeField] private float _betButtonMovementDuration = 0.3f;
+
         [SerializeField] private Ease _awardedScoreMovementEase = Ease.OutBounce;
         [SerializeField] private Vector3 _comboMultiplierPunchVector = new(0.5f, 0.5f, 0);
 
-        private List<Button> _betButtons;
+        private List<BetButtonView> _betButtons;
         private int _currentScore;
         private BetButtonLoader _betButtonLoader;
         private Sequence _sequence;
@@ -58,17 +59,17 @@ namespace Views
 
         public async UniTask InstantiateBetButtons(Vector2[] playersPositions, Transform[] playersTransforms, Action<int> onBetButtonClicked)
         {
-            _betButtons = new List<Button>();
+            _betButtons = new List<BetButtonView>();
             for (int i = 0; i < playersPositions.Length; i++)
             {
-                Button betButton = await _betButtonLoader.LoadAsync();
-                _betButtons.Add(betButton);
-                if (betButton != null)
+                BetButtonView betButtonView = await _betButtonLoader.LoadAsync();
+                _betButtons.Add(betButtonView);
+                if (betButtonView != null)
                 {
-                    betButton.transform.SetParent(playersTransforms[i], false);
-                    betButton.transform.position = playersPositions[i];
+                    betButtonView.buttonTransform.SetParent(playersTransforms[i], false);
+                    betButtonView.buttonTransform.position = playersPositions[i];
                     int index = i;
-                    betButton.onClick.AddListener(() => onBetButtonClicked(index));
+                    betButtonView.betButton.onClick.AddListener(() => onBetButtonClicked(index));
                 }
             }
         }
@@ -146,10 +147,9 @@ namespace Views
             _awardedScoreCanvasGroup.alpha = 1f;
         }
 
-        public async UniTask PlayLoseBetAnimSeq(bool isBet, CancellationToken cancellationToken)
+        public async UniTask PlayLoseBetAnimSeq(int comboMultiplier, CancellationToken cancellationToken)
         {
             if (_sequence != null && _sequence.IsActive()) _sequence.Kill();
-            _comboMultiplierObj.SetActive(false);
             _awardedScoreObj.SetActive(true);
             _awardedScoreText.text = LOSE_BET;
             _awardedScoreText.color = Color.red;
@@ -160,6 +160,15 @@ namespace Views
             _sequence.Join(_awardedScoreCanvasGroup.DOFade(0f, _awardedScoreMovementDuration));
             _sequence.JoinCallback(DecreaseSound);
 
+            if (_comboMultiplierObj.activeSelf)
+            {
+                _sequence.Join(_comboMultiplierTransform.DOScale(Vector3.zero, 0.3f));
+                _sequence.OnComplete(() =>
+                {
+                    _comboMultiplierObj.SetActive(false);
+                });
+            }
+            
             var completionSource = new UniTaskCompletionSource();
             _sequence.OnComplete(() =>
             {
@@ -179,17 +188,70 @@ namespace Views
             _awardedScoreObj.SetActive(false);
             _awardedScoreTransform.position = originalPos;
             _awardedScoreCanvasGroup.alpha = 1f;
+            
+            _comboMultiplierTransform.localScale = Vector3.one;
+            _comboMultiplierObj.SetActive(false); 
         }
 
         public void ResetBet()
         {
-            foreach (var button in _betButtons) button.gameObject.SetActive(true);
+            foreach (BetButtonView buttonView in _betButtons)
+            {
+                Transform buttonTransform = buttonView.buttonTransform;
+
+                DOTween.Sequence()
+                    .Append(buttonTransform.DOScale(Vector3.one, _betButtonMovementDuration))
+                    .Join(buttonView.canvasGroup.DOFade(1f, _betButtonMovementDuration))
+                    .OnComplete(() =>
+                    {
+                        if (buttonView != null)
+                        {
+                            buttonView.SetInteractable(true);
+                            buttonView.SetActive(true);
+                        }
+                    });
+            }
         }
+
 
         public void DeactivateButtonsExcept(int playerIndex)
         {
             for (int i = 0; i < _betButtons.Count; i++)
-                if (i != playerIndex) _betButtons[i].gameObject.SetActive(false);
+            {
+                int index = i;
+                _betButtons[index].SetInteractable(false);
+        
+                if (index != playerIndex)
+                {
+                    Transform buttonTransform = _betButtons[index].buttonTransform;
+
+                    DOTween.Sequence()
+                        .Append(buttonTransform.DOScale(Vector3.zero, _betButtonMovementDuration))
+                        .Join(_betButtons[index].canvasGroup.DOFade(0f, _betButtonMovementDuration))
+                        .OnComplete(() =>
+                        {
+                            if (index >= 0 && index < _betButtons.Count)
+                            {
+                                _betButtons[index].SetActive(false);
+                            }
+                        });
+                }
+            }
+        }
+
+
+        public void DeactivateButtons()
+        {
+            foreach (BetButtonView buttonView in _betButtons)
+            {
+                buttonView.SetInteractable(false);
+                Transform buttonTransform = buttonView.buttonTransform;
+                    
+                DOTween.Sequence()
+                    .Append(buttonTransform.DOScale(Vector3.zero, _betButtonMovementDuration))
+                    .Join(buttonView.canvasGroup.DOFade(0f, _betButtonMovementDuration))
+                    .OnComplete(() => buttonView.gameObject.SetActive(false));
+            }
         }
 
         private void IncreaseSound(int comboMultiplier)

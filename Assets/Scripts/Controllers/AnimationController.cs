@@ -62,7 +62,7 @@ namespace Controllers
             else
             {
                 Logger.Log($"Animating INCORRECT bet for player {winningPlayerIndex}.", LogType.Log);
-                await _betView.PlayLoseBetAnimSeq(result.IsBet, cancellationToken);
+                await _betView.PlayLoseBetAnimSeq(result.ComboMultiplier, cancellationToken);
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: cancellationToken);

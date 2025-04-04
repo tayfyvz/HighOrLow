@@ -412,7 +412,7 @@ MonoBehaviour:
   _buttonTransform: {fileID: 360807932011183058}
   _cardTransform: {fileID: 8771947300409193904}
   _scoreTextTransform: {fileID: 7697417085819837291}
-  _playerImageTransform: {fileID: 763096323537773301}
+  _playerImageTransform: {fileID: 3306357171584442118}
   _leftHandTransform: {fileID: 5212367413517684509}
   _rightHandTransform: {fileID: 7779635589335324210}
   _textAnimationDuration: 0.01

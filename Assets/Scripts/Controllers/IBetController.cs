@@ -8,6 +8,7 @@ namespace Controllers
         void Initialize(Vector2[] playersPositions, Transform[] playersTransforms);
         void AttachView(IBetView view);
         void SetBet(int playerIndex);
+        void DeactivateButtons();
         void ResetBet();
         BetResult EvaluateBet(int winningPlayerIndex, int basePoints);
         void UpdateScore();

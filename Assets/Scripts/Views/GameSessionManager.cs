@@ -20,6 +20,8 @@ namespace Views
         [SerializeField] private GameObject _drawCardButtonObj;
         [SerializeField] private GameObject _newGameButtonObj;
 
+        private bool _isSessionEnded;
+        
         private IGameController _gameController;
         private readonly SemaphoreSlim _roundLock = new SemaphoreSlim(1, 1);
 
@@ -72,7 +74,10 @@ namespace Views
             }
             finally
             {
-                _drawCardButtonObj.SetActive(true);
+                if (!_isSessionEnded)
+                {
+                    _drawCardButtonObj.SetActive(true);
+                }
                 _roundLock.Release();
             }
         }
@@ -95,6 +100,7 @@ namespace Views
         {
             _gameController = gameController;
             _drawCardButtonObj.SetActive(true);
+            _isSessionEnded = false;
         }
 
         public void WinGame()
@@ -102,7 +108,8 @@ namespace Views
             AudioManager.Instance.StopMusic();
             _drawCardButtonObj.SetActive(false);
             _newGameButtonObj.SetActive(true);
-            Logger.Log("Game session ended.", LogType.Error);
+            _isSessionEnded = true;
+            Logger.Log("Game session ended.");
         }
 
         public void WinRound()

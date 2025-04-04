@@ -37,6 +37,14 @@ namespace Controllers
             UpdateView();
         }
 
+        public void DeactivateButtons()
+        {
+            if (CurrentBetIndex == -1)
+            {
+                View.DeactivateButtons();
+            }
+        }
+        
         public void ResetBet()
         {
             CurrentBetIndex = -1;

@@ -12,12 +12,13 @@ namespace Managers
     {
         public static GameInitializer Instance { get; private set; }
 
-        [SerializeField]
-        private Canvas targetCanvas;
-
+        [SerializeField] private Canvas targetCanvas;
+        [SerializeField] private bool enableLogging = true;
+        
         private async void Start()
         {
             Screen.SetResolution(1920, 1080, true);
+            Logger.EnableLogging(enableLogging);
             await InitializeGameAsync();
         }
 
@@ -32,6 +33,11 @@ namespace Managers
             {
                 Destroy(gameObject);
             }
+        }
+        
+        private void OnValidate()
+        {
+            Logger.EnableLogging(enableLogging);
         }
 
         private async UniTask InitializeGameAsync()

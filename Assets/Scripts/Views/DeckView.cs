@@ -97,6 +97,7 @@ namespace Views
             }
             else
             {
+                _currentCardCount = count;
                 _remainingCardsText.text = _currentCardCount.ToString();
             }
         }

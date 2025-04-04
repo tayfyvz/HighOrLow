@@ -12,8 +12,10 @@ GameObject:
   - component: {fileID: 3923108037761982745}
   - component: {fileID: 4078595286586192569}
   - component: {fileID: 6114359646270181869}
+  - component: {fileID: 964836786906288159}
+  - component: {fileID: 5232995359859622614}
   m_Layer: 5
-  m_Name: Button_Bet
+  m_Name: BetButtonView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -121,6 +123,33 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!225 &964836786906288159
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1040909442762824959}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &5232995359859622614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1040909442762824959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 070c7d3a8d00429eaeaed025781a6900, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonTransform: {fileID: 7237102221849253604}
+  betButton: {fileID: 6114359646270181869}
+  canvasGroup: {fileID: 964836786906288159}
 --- !u!1 &4056632922692982873
 GameObject:
   m_ObjectHideFlags: 0

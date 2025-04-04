@@ -39,5 +39,10 @@ namespace Utils
         {
             _enableLogging = isEnabled;
         }
+        
+        public static bool IsLoggingOn()
+        {
+            return _enableLogging;
+        }
     }
 }

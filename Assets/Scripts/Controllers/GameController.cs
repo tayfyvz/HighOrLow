@@ -31,6 +31,8 @@ namespace Controllers
                 HandleInsufficientCards();
                 return;
             }
+            
+            _betController.DeactivateButtons();
 
             bool isLastRound = HasEnoughCards(playerCount);
             Card[] roundCards = DistributeCards(playerCount);
