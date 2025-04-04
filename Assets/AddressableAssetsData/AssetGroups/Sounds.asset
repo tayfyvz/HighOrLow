@@ -17,6 +17,42 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 7bfe13de826891343b19f6cd39b95571
   m_SerializeEntries:
+  - m_GUID: 17aa097ea5b42354dae4b4daa0cb8a1f
+    m_Address: ButtonClickSound
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Sound
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 28d7fbbd029422e408fc0c458bfb8f2d
+    m_Address: BetLoseSound
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Sound
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2cb9552e72e26b14cb0b19dfd3d6b832
+    m_Address: RoundEndSound
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Sound
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 66793b0d752a8634e8b1445feec484db
+    m_Address: GameEndSound
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Sound
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 949e4b38a2f55f049acec10aa7ac7e96
+    m_Address: BetWinSound
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Sound
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a445230f2a667e748b1851a80f233fdf
+    m_Address: DrawCardSound
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Sound
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bc0fe8e073e5ec540b9ef20fd3db8ac2
     m_Address: BackgroundMusic
     m_ReadOnly: 0

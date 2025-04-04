@@ -6,10 +6,6 @@ using Utils;
 
 namespace Models
 {
-    /// <summary>
-    /// Manages a deck of 52 cards using a weighted random selection for drawing cards.
-    /// Uses CardsWeightConfig to determine each card's weight.
-    /// </summary>
     public class Deck
     {
         public int RemainingCardsCount => _cards.Count;
@@ -20,7 +16,6 @@ namespace Models
     
         private float _totalWeight;
         
-        /// <param name="rng">A custom random number generator; if null, a SystemRandomNumberGenerator will be used.</param>
         public Deck(IRandomNumberGenerator rng = null)
         {
             _rng = rng ?? new SystemRandomNumberGenerator();
@@ -28,7 +23,6 @@ namespace Models
             Reset();
         }
 
-        // Initializes (or re-initializes) the deck with 52 unique cards.
         public void Reset()
         {
             Suits[] suits = (Suits[])Enum.GetValues(typeof(Suits));
@@ -55,7 +49,6 @@ namespace Models
                 return null;
             }
 
-            // Generate a random float between 0 and the total weight.
             float randomValue = (float)(_rng.NextDouble() * _totalWeight);
             float minTargetWeight = 0f;
         

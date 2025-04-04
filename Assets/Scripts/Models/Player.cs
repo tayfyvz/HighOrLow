@@ -1,11 +1,7 @@
 using System.Collections.Generic;
-using UnityEngine.XR;
 
 namespace Models
 {
-    /// <summary>
-    /// Represents a single player.
-    /// </summary>
     public class Player
     {
         public string Name { get; private set; }

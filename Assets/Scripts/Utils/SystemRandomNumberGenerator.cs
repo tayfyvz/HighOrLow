@@ -1,17 +1,19 @@
 using System;
-using Utils;
 
-public class SystemRandomNumberGenerator : IRandomNumberGenerator
+namespace Utils
 {
-    private readonly Random _random;
-    
-    public SystemRandomNumberGenerator(int seed = 0)
+    public class SystemRandomNumberGenerator : IRandomNumberGenerator
     {
-        _random = seed == 0 ? new Random() : new Random(seed);
-    }
+        private readonly Random _random;
     
-    public double NextDouble()
-    {
-        return _random.NextDouble();
+        public SystemRandomNumberGenerator(int seed = 0)
+        {
+            _random = seed == 0 ? new Random() : new Random(seed);
+        }
+    
+        public double NextDouble()
+        {
+            return _random.NextDouble();
+        }
     }
 }

@@ -4,14 +4,15 @@ using Cysharp.Threading.Tasks;
 using Models;
 using UnityEngine;
 using Views;
+using Logger = Utils.Logger;
 
 namespace Controllers
 {
     public class AnimationController : IAnimationController
     {
-        IPlayerView[] _players;
-        IDeckView _deckView;
-        IBetView _betView;
+        private readonly IPlayerView[] _players;
+        private readonly IDeckView _deckView;
+        private readonly IBetView _betView;
 
         public AnimationController(IPlayerView[] players, IDeckView deckView, IBetView betView)
         {
@@ -22,52 +23,59 @@ namespace Controllers
 
         public async UniTask AnimateCardDistributionAsync(Card[] roundCards, CancellationToken cancellationToken)
         {
-            for (int i = 0; i < roundCards.Length; i++)
+            int count = roundCards.Length;
+            _deckView.PlayDrawCardAmountAnim(count);
+
+            for (int i = 0; i < count; i++)
             {
-                // Log start animation (or initiate actual animation logic)
-                Debug.Log($"Starting animation for card {roundCards[i].ToString()} for player {i}.");
-
-                // Simulate an animation delay. Replace this with your actual animation code.
-                await UniTask.Delay(TimeSpan.FromSeconds(2), cancellationToken: cancellationToken);
-
-                // Log completion of the animation for this card.
-                Debug.Log($"Completed animation for card {roundCards[i].ToString()} for player {i}.");
+                Logger.Log($"Starting animation for card {roundCards[i]} for player {i}.", LogType.Log);
+                Vector2 destination = _players[i].GetCardPosition();
+                await _deckView.PlayDistributeCardAnim(roundCards[i], destination, cancellationToken);
+                Logger.Log($"Completed animation for card {roundCards[i]} for player {i}.", LogType.Log);
             }
+
+            foreach (IPlayerView player in _players)
+            {
+                player.PlayReadCardAnim();
+            }
+
+            await _deckView.PlayFlipCardAnim();
+            await UniTask.Delay(TimeSpan.FromSeconds(2f), cancellationToken: cancellationToken);
         }
 
         public async UniTask AnimateRoundWinningAsync(int winningIndex, CancellationToken cancellationToken)
         {
-            Debug.Log($"Starting animation for round winning.");
-            await UniTask.Delay(TimeSpan.FromSeconds(2), cancellationToken: cancellationToken);
-            Debug.Log($"Completed animation for round winning.");
+            Logger.Log("Starting animation for round winning.", LogType.Log);
+            await _deckView.PlayDiscardCardsAnim();
+            await _players[winningIndex].PlayWinScoreAnim();
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: cancellationToken);
+            Logger.Log("Completed animation for round winning.", LogType.Log);
         }
-        
+
         public async UniTask AnimateBetResultAsync(BetResult result, int winningPlayerIndex, CancellationToken cancellationToken)
         {
-            if (result.IsCorrect)
+            if (result.IsBet)
             {
-                Debug.Log($"Animating CORRECT bet: Combo {result.ComboMultiplier}, Awarded {result.AwardedPoints} points for player {winningPlayerIndex}");
-                // Insert your animation logic for a correct bet here.
-                await UniTask.Delay(TimeSpan.FromSeconds(2), cancellationToken: cancellationToken);
+                Logger.Log($"Animating CORRECT bet: Combo {result.ComboMultiplier}, Awarded {result.AwardedPoints} points for player {winningPlayerIndex}.", LogType.Log);
+                await _betView.PlayWinBetAnimSeq(result.ComboMultiplier, result.AwardedPoints, cancellationToken);
             }
             else
             {
-                Debug.Log($"Animating INCORRECT bet for player {winningPlayerIndex}");
-                // Insert your animation logic for an incorrect bet here.
-                await UniTask.Delay(TimeSpan.FromSeconds(2), cancellationToken: cancellationToken);
+                Logger.Log($"Animating INCORRECT bet for player {winningPlayerIndex}.", LogType.Log);
+                await _betView.PlayLoseBetAnimSeq(result.IsBet, cancellationToken);
             }
-            
-            Debug.Log($"Completed animation for BET.");
 
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: cancellationToken);
+            _betView.ResetBet();
+            Logger.Log("Completed animation for BET.", LogType.Log);
         }
 
         public async UniTask AnimateSessionWinningAsync(int winnerIndex, CancellationToken cancellationToken)
         {
-            Debug.Log($"Started animation for SessionWin.");
-
-            await UniTask.Delay(TimeSpan.FromSeconds(2), cancellationToken: cancellationToken);
-            Debug.Log($"Completed animation for SessionWin.");
-
+            Logger.Log("Started animation for SessionWin.", LogType.Log);
+            await _players[winnerIndex].PlayWinSessionAnim();
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: cancellationToken);
+            Logger.Log("Completed animation for SessionWin.", LogType.Log);
         }
     }
 }

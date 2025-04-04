@@ -1,8 +1,11 @@
+using System.Threading;
 using Controllers;
 using Cysharp.Threading.Tasks;
 using Managers;
+using Managers.Managers;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = Utils.Logger;
 
 namespace Views
 {
@@ -11,49 +14,33 @@ namespace Views
         [Header("Button References")]
         [SerializeField] private Button _drawCardButton;
         [SerializeField] private Button _newGameButton;
-        [SerializeField] private Button _settingsButton; // New Settings Button
+        [SerializeField] private Button _settingsButton;
 
         [Header("GameObject References")]
         [SerializeField] private GameObject _drawCardButtonObj;
         [SerializeField] private GameObject _newGameButtonObj;
 
         private IGameController _gameController;
+        private readonly SemaphoreSlim _roundLock = new SemaphoreSlim(1, 1);
 
         private void Start()
         {
-            // Initialize button objects if not assigned directly.
-            if (_drawCardButtonObj == null && _drawCardButton != null)
-            {
-                _drawCardButtonObj = _drawCardButton.gameObject;
-            }
-
-            if (_newGameButtonObj == null && _newGameButton != null)
-            {
-                _newGameButtonObj = _newGameButton.gameObject;
-            }
-
-            // Ensure the settings button is active.
-            if (_settingsButton != null)
-            {
-                _settingsButton.gameObject.SetActive(true);
-            }
+            if (_drawCardButtonObj == null && _drawCardButton != null) _drawCardButtonObj = _drawCardButton.gameObject;
+            if (_newGameButtonObj == null && _newGameButton != null) _newGameButtonObj = _newGameButton.gameObject;
+            _settingsButton?.gameObject.SetActive(true);
         }
 
         private void OnEnable()
         {
-            // Add listeners for button actions.
             _drawCardButton.onClick.AddListener(OnDrawCardClicked);
             _newGameButton.onClick.AddListener(OnNewGameClicked);
-            _settingsButton?.onClick.AddListener(OnSettingsButtonClicked); // Listener for Settings Button
-
-            // Initially disable draw card and new game buttons.
+            _settingsButton?.onClick.AddListener(OnSettingsButtonClicked);
             _drawCardButtonObj.SetActive(false);
             _newGameButtonObj.SetActive(false);
         }
 
         private void OnDisable()
         {
-            // Remove listeners to avoid memory leaks.
             _drawCardButton.onClick.RemoveListener(OnDrawCardClicked);
             _newGameButton.onClick.RemoveListener(OnNewGameClicked);
             _settingsButton?.onClick.RemoveListener(OnSettingsButtonClicked);
@@ -61,63 +48,70 @@ namespace Views
 
         private async void OnDrawCardClicked()
         {
-            // Handle logic for drawing a card during the game.
-            Debug.Log("Draw card clicked.");
+            Logger.Log("Draw card clicked.", LogType.Log);
+            SoundManager.Instance.PlaySound(SoundType.ButtonClick);
 
-            if (_gameController != null)
+            if (!await _roundLock.WaitAsync(0))
             {
-                await _gameController.PlayRoundAsync(this.GetCancellationTokenOnDestroy());
+                Logger.Log("Round already in progress, ignoring extra click.", LogType.Warning);
+                return;
             }
-            else
+
+            try
             {
-                Debug.LogWarning("Game controller is not set.");
+                CancellationToken cancellationToken = this.GetCancellationTokenOnDestroy();
+                if (_gameController != null)
+                {
+                    _drawCardButtonObj.SetActive(false);
+                    await _gameController.PlayRoundAsync(cancellationToken);
+                }
+                else
+                {
+                    Logger.Log("Game controller is not set.", LogType.Warning);
+                }
+            }
+            finally
+            {
+                _drawCardButtonObj.SetActive(true);
+                _roundLock.Release();
             }
         }
 
         private void OnNewGameClicked()
         {
-            // Reset the game to its initial state.
-            Debug.Log("New game clicked.");
+            SoundManager.Instance.PlaySound(SoundType.ButtonClick);
+            AudioManager.Instance.ResumeMusic();
             ResetGame();
         }
 
         private void OnSettingsButtonClicked()
         {
-            // Transition from Game to Lobby scene when settings are clicked.
-            Debug.Log("Settings button clicked. Transitioning to Lobby scene...");
-            GameInitializer.Instance.LoadLobbySceneWithLoadingAsync();
+            SoundManager.Instance.PlaySound(SoundType.ButtonClick);
+            Logger.Log("Settings button clicked. Transitioning to Lobby scene...", LogType.Log);
+            _ = GameInitializer.Instance.LoadLobbySceneWithLoadingAsync();
         }
 
         public void Initialize(IGameController gameController)
         {
-            // Set up the game controller and activate relevant buttons.
             _gameController = gameController;
-
             _drawCardButtonObj.SetActive(true);
         }
 
         public void WinGame()
         {
-            // Handle end-of-game logic.
+            AudioManager.Instance.StopMusic();
             _drawCardButtonObj.SetActive(false);
             _newGameButtonObj.SetActive(true);
-
-            Debug.LogError("Game session ended.");
+            Logger.Log("Game session ended.", LogType.Error);
         }
 
         public void WinRound()
         {
-            // Handle logic for the end of a round.
-            _drawCardButtonObj.SetActive(false);
-
-            Debug.Log("Round ended.");
-
-            _drawCardButtonObj.SetActive(true);
+            Logger.Log("Round ended.", LogType.Log);
         }
 
         private void ResetGame()
         {
-            // Reset the game and ensure UI state is restored.
             _gameController?.ResetGame();
             _newGameButtonObj.SetActive(false);
             _drawCardButtonObj.SetActive(true);

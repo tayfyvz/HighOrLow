@@ -4,6 +4,7 @@ using Models;
 using UnityEngine;
 using Utils;
 using Views;
+using Logger = Utils.Logger;
 
 namespace Controllers
 {
@@ -14,7 +15,7 @@ namespace Controllers
         private readonly IBetController _betController = new BetController();
         private readonly IAnimationController _animationController;
         private readonly GameSessionManager _gameSessionManager;
-        
+
         public GameController(GameSessionManager gameSessionManager, IAnimationController animationController)
         {
             _gameSessionManager = gameSessionManager;
@@ -32,30 +33,28 @@ namespace Controllers
             }
 
             bool isLastRound = HasEnoughCards(playerCount);
-
-            // Distribute cards to the players.
             Card[] roundCards = DistributeCards(playerCount);
             await _animationController.AnimateCardDistributionAsync(roundCards, cancellationToken);
 
-            // Determine the winning card.
             int winningIndex = DetermineWinningIndex(roundCards);
-            
             _playerController.MarkRoundWinner(winningIndex);
             _gameSessionManager.WinRound();
             await _animationController.AnimateRoundWinningAsync(winningIndex, cancellationToken);
-            
+            _playerController.SetPlayerScore(winningIndex);
+
             BetResult betResult = _betController.EvaluateBet(winningIndex, 10);
             await _animationController.AnimateBetResultAsync(betResult, winningIndex, cancellationToken);
-            
+            _betController.UpdateScore();
+
             if (isLastRound)
             {
                 int winnerIndex = EndGame();
                 await _animationController.AnimateSessionWinningAsync(winnerIndex, cancellationToken);
             }
 
-            Debug.Log("Ready for new round");
+            Logger.Log("Ready for new round.", LogType.Log);
         }
-        
+
         public void ResetGame()
         {
             _deckController.ResetDeck();
@@ -69,19 +68,16 @@ namespace Controllers
             {
                 case IDeckView deckView:
                     _deckController.AttachView(deckView);
-                    return;
+                    break;
                 case IBetView betView:
                     _betController.AttachView(betView);
-                    return;
+                    break;
             }
         }
 
         public void PassView(IView[] views, Vector2[] positions)
         {
-            if (views.Length == 0)
-            {
-                return;
-            }
+            if (views.Length == 0) return;
 
             if (views is IPlayerView[] playerViews)
             {
@@ -92,7 +88,7 @@ namespace Controllers
                     Player player = new Player($"Player {i + 1}", i);
                     _playerController.AddPlayer(player, playerViews[i]);
                 }
-                
+
                 _playerController.SetPlayersPosition(positions);
             }
         }
@@ -100,23 +96,17 @@ namespace Controllers
         public void InitializeBetSystem()
         {
             Vector2[] playersPositions = _playerController.GetPlayersPositions();
-            _betController.Initialize(playersPositions);
+            Transform[] playersTransforms = _playerController.GetPlayersTransforms();
+            _betController.Initialize(playersPositions, playersTransforms);
         }
 
-        private bool IsDeckSufficient(int playerCount)
-        {
-            return _deckController.HasCards(playerCount);
-        }
-        
-        
-        private bool HasEnoughCards(int playerCount)
-        {
-            return _deckController.IsLastRound(playerCount);
-        }
-        
+        private bool IsDeckSufficient(int playerCount) => _deckController.HasCards(playerCount);
+
+        private bool HasEnoughCards(int playerCount) => _deckController.IsLastRound(playerCount);
+
         private void HandleInsufficientCards()
         {
-            Debug.LogError("Not enough cards");
+            Logger.Log("Not enough cards.", LogType.Error);
             EndGame();
         }
 
@@ -143,10 +133,7 @@ namespace Controllers
             int winningIndex = 0;
             for (int i = 1; i < cards.Length; i++)
             {
-                if (CardComparer.Compare(cards[i], cards[winningIndex]) > 0)
-                {
-                    winningIndex = i;
-                }
+                if (CardComparer.Compare(cards[i], cards[winningIndex]) > 0) winningIndex = i;
             }
             return winningIndex;
         }

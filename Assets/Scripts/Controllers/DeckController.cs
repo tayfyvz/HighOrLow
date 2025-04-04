@@ -2,12 +2,13 @@ using Models;
 using UnityEngine;
 using Utils;
 using Views;
+using Logger = Utils.Logger;
 
 namespace Controllers
 {
     public class DeckController : BaseController<IDeckView>, IDeckController
     {
-        public Deck DeckModel { get; private set; }
+        private Deck DeckModel { get; set; }
 
         public DeckController()
         {
@@ -22,8 +23,8 @@ namespace Controllers
                 View.UpdateDeckCount(DeckModel.RemainingCardsCount);
                 return;
             }
-            
-            Debug.LogError("deck controller view null");
+
+            Logger.Log("Deck controller view is null.", LogType.Error);
         }
 
         public bool IsLastRound(int playerCount)
@@ -37,7 +38,7 @@ namespace Controllers
             UpdateView();
             return drawn;
         }
-        
+
         public bool HasCards(int count)
         {
             return DeckModel.HasEnoughCards(count);

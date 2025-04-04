@@ -1,5 +1,5 @@
 using UnityEngine;
-using Utils.AddressableLoaders.Utils;
+using Utils.AddressableLoaders;
 
 namespace Managers
 {
@@ -11,7 +11,6 @@ namespace Managers
 
         private void Awake()
         {
-            // Implement singleton pattern.
             if (Instance == null)
             {
                 Instance = this;
@@ -23,9 +22,7 @@ namespace Managers
                 return;
             }
 
-            // Create the UIAtlasLoader instance.
             UIAtlasLoader = new UIAtlasLoader();
-            // Note: We are deferring the actual loading of the atlas until GameInitializer calls it.
         }
     }
 }

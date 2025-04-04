@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.SceneManagement;
+using Utils;
+using Logger = Utils.Logger;
 
 namespace Managers
 {
@@ -13,12 +15,9 @@ namespace Managers
         [SerializeField]
         private Canvas targetCanvas;
 
-        private const float uiLoadingWeight = 0.30f;
-        private const float audioLoadingWeight = 0.30f;
-        private const float sceneLoadingWeight = 0.40f;
-
         private async void Start()
         {
+            Screen.SetResolution(1920, 1080, true);
             await InitializeGameAsync();
         }
 
@@ -37,34 +36,34 @@ namespace Managers
 
         private async UniTask InitializeGameAsync()
         {
-            await TransitionSceneAsync("Lobby", "LoadingPrefab");
+            await TransitionSceneAsync(Constants.SCENE_LOBBY, Constants.ADDRESS_LOADING_PREFAB);
         }
 
         public async UniTaskVoid LoadLobbySceneWithLoadingAsync()
         {
-            await TransitionSceneAsync("Lobby", "LoadingPrefab");
+            await TransitionSceneAsync(Constants.SCENE_LOBBY, Constants.ADDRESS_LOADING_PREFAB);
         }
 
         public async UniTaskVoid LoadGameSceneWithLoadingAsync()
         {
-            await TransitionSceneAsync("Game", "LoadingPrefab");
+            await TransitionSceneAsync(Constants.SCENE_GAME, Constants.ADDRESS_LOADING_PREFAB);
         }
 
         private async UniTask TransitionSceneAsync(string targetSceneName, string loadingPrefabKey)
         {
             if (targetCanvas == null)
             {
-                Debug.LogError("Target Canvas is not assigned. Please ensure a Canvas is set in the Inspector.");
+                Logger.Log("Target Canvas is not assigned. Please ensure a Canvas is set in the Inspector.", LogType.Error);
                 return;
             }
 
-            Debug.Log($"Loading {loadingPrefabKey} from Addressables...");
+            Logger.Log($"Loading {loadingPrefabKey} from Addressables...");
             AsyncOperationHandle<GameObject> loadingHandle = Addressables.LoadAssetAsync<GameObject>(loadingPrefabKey);
             await loadingHandle.Task;
 
             if (loadingHandle.Status != AsyncOperationStatus.Succeeded || loadingHandle.Result == null)
             {
-                Debug.LogError($"Failed to load {loadingPrefabKey} from Addressables.");
+                Logger.Log($"Failed to load {loadingPrefabKey} from Addressables.", LogType.Error);
                 return;
             }
 
@@ -75,7 +74,7 @@ namespace Managers
             LoadingManager loadingUI = loadingInstance.GetComponent<LoadingManager>();
             if (loadingUI == null)
             {
-                Debug.LogError("LoadingManager component not found on the instantiated prefab.");
+                Logger.Log("LoadingManager component not found on the instantiated prefab.", LogType.Error);
                 return;
             }
 
@@ -83,48 +82,49 @@ namespace Managers
             loadingUI.SetProgress(totalProgress);
 
             Scene currentScene = SceneManager.GetActiveScene();
-            
+
             if (currentScene.name == "Main")
             {
-                Debug.Log("Main scene is persistent and will not be unloaded.");
+                Logger.Log("Main scene is persistent and will not be unloaded.");
             }
             else
             {
-                Debug.Log($"Unloading current scene: {currentScene.name}...");
+                Logger.Log($"Unloading current scene: {currentScene.name}...");
                 AsyncOperation unloadOp = SceneManager.UnloadSceneAsync(currentScene);
                 while (!unloadOp.isDone)
                 {
                     await UniTask.Yield();
                 }
-                totalProgress += uiLoadingWeight;
+
+                totalProgress += Constants.UI_LOADING_WEIGHT;
                 loadingUI.SetProgress(totalProgress);
             }
 
-            Debug.Log($"Loading UI Atlas for {targetSceneName} scene...");
+            Logger.Log($"Loading UI Atlas for {targetSceneName} scene...");
             await UIManager.Instance.UIAtlasLoader.LoadAsync();
-            totalProgress += uiLoadingWeight;
+            totalProgress += Constants.UI_LOADING_WEIGHT;
             loadingUI.SetProgress(totalProgress);
 
-            Debug.Log($"Loading Background Music for {targetSceneName} scene...");
+            Logger.Log($"Loading Background Music for {targetSceneName} scene...");
             await AudioManager.Instance.LoadBackgroundMusicAsync();
-            totalProgress += audioLoadingWeight;
+            totalProgress += Constants.AUDIO_LOADING_WEIGHT;
             loadingUI.SetProgress(totalProgress);
 
-            Debug.Log($"Loading {targetSceneName} scene additively...");
+            Logger.Log($"Loading {targetSceneName} scene additively...");
             AsyncOperation targetLoadOp = SceneManager.LoadSceneAsync(targetSceneName, LoadSceneMode.Additive);
-            targetLoadOp.allowSceneActivation = false; // Delay scene activation.
+            targetLoadOp.allowSceneActivation = false;
 
             while (targetLoadOp.progress < 0.9f)
             {
                 float sceneProgress = Mathf.Clamp01(targetLoadOp.progress / 0.9f);
-                float combinedProgress = totalProgress + sceneProgress * sceneLoadingWeight;
+                float combinedProgress = totalProgress + sceneProgress * Constants.SCENE_LOADING_WEIGHT;
                 loadingUI.SetProgress(combinedProgress);
                 await UniTask.Yield();
             }
 
-            Debug.Log($"{targetSceneName} scene fully loaded in the background. Waiting for Loading UI to hide...");
+            Logger.Log($"{targetSceneName} scene fully loaded in the background. Waiting for Loading UI to hide...");
             await loadingUI.Hide();
-            Debug.Log("Loading UI hidden. Activating scene...");
+            Logger.Log("Loading UI hidden. Activating scene...");
 
             targetLoadOp.allowSceneActivation = true;
             while (!targetLoadOp.isDone)
@@ -136,7 +136,7 @@ namespace Managers
             if (targetScene.IsValid())
             {
                 SceneManager.SetActiveScene(targetScene);
-                Debug.Log($"{targetSceneName} scene activated.");
+                Logger.Log($"{targetSceneName} scene activated.");
             }
         }
     }

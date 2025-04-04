@@ -9,26 +9,24 @@ namespace Utils.AddressableLoaders
 {
     public class CardAtlasLoader : BaseAddressableLoader<SpriteAtlas>
     {
-        private const string AssetAddress = "CardAtlas";
-        private const string CardBackAddress = "CardBack";
-
         private SpriteAtlas _cardAtlas;
 
         public override async UniTask<SpriteAtlas> LoadAsync()
         {
-            AsyncOperationHandle<SpriteAtlas> atlasHandle = Addressables.LoadAssetAsync<SpriteAtlas>(AssetAddress);
+            AsyncOperationHandle<SpriteAtlas> atlasHandle =
+                Addressables.LoadAssetAsync<SpriteAtlas>(Constants.CARD_ATLAS);
             handle = atlasHandle;
             _cardAtlas = await atlasHandle.Task;
 
             if (_cardAtlas == null)
             {
-                Debug.LogError($"Failed to load Sprite Atlas at address: {AssetAddress}");
+                Logger.Log($"Failed to load Sprite Atlas at address: {Constants.CARD_ATLAS}", LogType.Error);
             }
             else
             {
-                Debug.Log("Cards Sprite Atlas loaded successfully!");
+                Logger.Log("Cards Sprite Atlas loaded successfully!");
             }
-            
+
             return _cardAtlas;
         }
 
@@ -44,22 +42,22 @@ namespace Utils.AddressableLoaders
         {
             if (_cardAtlas == null)
             {
-                Debug.LogWarning("Atlas is not loaded yet.");
+                Logger.Log("Atlas is not loaded yet.", LogType.Warning);
                 return null;
             }
 
             string spriteName = GetSpriteName(card);
             Sprite sprite = _cardAtlas.GetSprite(spriteName);
-            
+
             if (sprite == null)
             {
-                Debug.LogWarning($"Sprite not found: {spriteName}");
+                Logger.Log($"Sprite not found: {spriteName}", LogType.Warning);
             }
             else
             {
-                Debug.Log($"Sprite found: {spriteName}");
+                Logger.Log($"Sprite found: {spriteName}");
             }
-            
+
             return sprite;
         }
 
@@ -67,65 +65,64 @@ namespace Utils.AddressableLoaders
         {
             if (_cardAtlas == null)
             {
-                Debug.LogWarning("Atlas is not loaded yet.");
+                Logger.Log("Atlas is not loaded yet.", LogType.Warning);
                 return null;
             }
 
-            Sprite sprite = _cardAtlas.GetSprite(CardBackAddress);
+            Sprite sprite = _cardAtlas.GetSprite(Constants.CARD_BACK_ADDRESS);
             if (sprite == null)
             {
-                Debug.LogWarning($"Card back sprite not found: {CardBackAddress}");
+                Logger.Log($"Card back sprite not found: {Constants.CARD_BACK_ADDRESS}", LogType.Warning);
             }
             else
             {
-                Debug.Log($"Card back sprite found: {CardBackAddress}");
+                Logger.Log($"Card back sprite found: {Constants.CARD_BACK_ADDRESS}");
             }
-            
+
             return sprite;
         }
-        
+
         private string GetSpriteName(Card card)
         {
-            int index = ((int)card.Suit - 1) * 13 + (int)card.Rank;
-            string indexStr = index.ToString("D2");
-
             string rankStr = GetRankString(card.Rank);
             string suitStr = GetSuitString(card.Suit);
+
+            string indexStr = ((int)card.Rank).ToString("D2");
 
             return $"{indexStr}_{rankStr}_{suitStr}";
         }
 
         private string GetRankString(Ranks rank)
         {
-            switch (rank)
+            return rank switch
             {
-                case Ranks.Ace: return "A";
-                case Ranks.Two: return "2";
-                case Ranks.Three: return "3";
-                case Ranks.Four: return "4";
-                case Ranks.Five: return "5";
-                case Ranks.Six: return "6";
-                case Ranks.Seven: return "7";
-                case Ranks.Eight: return "8";
-                case Ranks.Nine: return "9";
-                case Ranks.Ten: return "10";
-                case Ranks.Jack: return "J";
-                case Ranks.Queen: return "Q";
-                case Ranks.King: return "K";
-                default: return "";
-            }
+                Ranks.Ace => "A",
+                Ranks.Two => "2",
+                Ranks.Three => "3",
+                Ranks.Four => "4",
+                Ranks.Five => "5",
+                Ranks.Six => "6",
+                Ranks.Seven => "7",
+                Ranks.Eight => "8",
+                Ranks.Nine => "9",
+                Ranks.Ten => "10",
+                Ranks.Jack => "J",
+                Ranks.Queen => "Q",
+                Ranks.King => "K",
+                _ => ""
+            };
         }
 
         private string GetSuitString(Suits suit)
         {
-            switch (suit)
+            return suit switch
             {
-                case Suits.Clubs: return "C";
-                case Suits.Diamonds: return "D";
-                case Suits.Hearts: return "H";
-                case Suits.Spades: return "S";
-                default: return "";
-            }
+                Suits.Clubs => "C",
+                Suits.Diamonds => "D",
+                Suits.Hearts => "H",
+                Suits.Spades => "S",
+                _ => ""
+            };
         }
     }
 }

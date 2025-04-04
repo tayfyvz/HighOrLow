@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
-using TMPro;
 using Models;
+using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
+using Logger = Utils.Logger;
 
-namespace Views
+namespace Views.Settings
 {
     public class RankWeightSettings : MonoBehaviour
     {
@@ -14,128 +15,93 @@ namespace Views
         [SerializeField] private TMP_Dropdown rankSuitDropdown;
         [SerializeField] private TMP_InputField[] rankWeightInputFields;
         [SerializeField] private TMP_Text[] rankLabels;
-        
         [Header("Layout Groups")]
         [SerializeField] private VerticalLayoutGroup[] _layoutGroups;
-        
-        // Internal storage for card (rank) overrides.
-        private List<CardOverrideData> cardOverrides = new List<CardOverrideData>();
-        private Suits[] allSuits;
-        private Ranks[] allRanks;
-        
-        // Change flag.
+
+        private List<CardOverrideData> _cardOverrides = new List<CardOverrideData>();
+        private Suits[] _allSuits;
+        private Ranks[] _allRanks;
         public bool HasChanged { get; private set; } = false;
 
         private void OnEnable()
         {
-            if (_layoutGroups == null)
-            {
-                return;
-            }
-            
+            if (_layoutGroups == null) return;
             foreach (var layoutGroup in _layoutGroups)
-            {
                 HandleLayoutGroup(layoutGroup, 0.15f).Forget();
-            }
         }
-        
+
         private async UniTaskVoid HandleLayoutGroup(VerticalLayoutGroup layoutGroup, float delay)
         {
-            if (layoutGroup != null)
-            {
-                layoutGroup.enabled = true;
-                await UniTask.Delay(TimeSpan.FromSeconds(delay));
-                layoutGroup.enabled = false;
-            }
+            if (layoutGroup == null) return;
+            layoutGroup.enabled = true;
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            layoutGroup.enabled = false;
         }
 
         public void Initialize(List<CardOverrideData> defaultOverrides)
         {
-            allSuits = (Suits[])Enum.GetValues(typeof(Suits));
-            allRanks = (Ranks[])Enum.GetValues(typeof(Ranks));
-            
-            // Copy defaults.
-            cardOverrides = new List<CardOverrideData>(defaultOverrides);
-            
-            // Populate the suit dropdown.
-            List<string> options = new List<string>();
-            foreach (Suits s in allSuits)
-            {
-                options.Add(s.ToString());
-            }
+            _allSuits = (Suits[])Enum.GetValues(typeof(Suits));
+            _allRanks = (Ranks[])Enum.GetValues(typeof(Ranks));
+            _cardOverrides = new List<CardOverrideData>(defaultOverrides);
+
+            var options = new List<string>();
+            foreach (Suits s in _allSuits) options.Add(s.ToString());
             rankSuitDropdown.ClearOptions();
             rankSuitDropdown.AddOptions(options);
             rankSuitDropdown.onValueChanged.RemoveAllListeners();
             rankSuitDropdown.onValueChanged.AddListener(OnRankSuitDropdownChanged);
-            
-            // Setup the rank input fields and labels.
-            if (rankWeightInputFields.Length != allRanks.Length || rankLabels.Length != allRanks.Length)
+
+            if (rankWeightInputFields.Length != _allRanks.Length || rankLabels.Length != _allRanks.Length)
             {
-                Debug.LogError("There must be exactly " + allRanks.Length + " rank input fields and labels.");
+                Logger.Log($"There must be exactly {_allRanks.Length} rank input fields and labels.", LogType.Error);
                 return;
             }
-            for (int i = 0; i < allRanks.Length; i++)
+
+            for (int i = 0; i < _allRanks.Length; i++)
             {
-                rankLabels[i].text = allRanks[i].ToString();
-                int index = i; // capture local copy for lambda.
+                rankLabels[i].text = _allRanks[i].ToString();
+                int index = i;
                 rankWeightInputFields[i].onEndEdit.RemoveAllListeners();
-                rankWeightInputFields[i].onEndEdit.AddListener((string input) => OnRankWeightInputChanged(index, input));
+                rankWeightInputFields[i].onEndEdit.AddListener(input => OnRankWeightInputChanged(index, input));
             }
-            
-            // Set the default suit selection.
+
             rankSuitDropdown.value = 0;
             UpdateInputFieldsForSelectedSuit();
-            
             HasChanged = false;
         }
-        
-        private void OnRankSuitDropdownChanged(int index)
-        {
-            UpdateInputFieldsForSelectedSuit();
-        }
-        
-        /// <summary>
-        /// Updates the rank input fields to show current weights for the selected suit.
-        /// </summary>
+
+        private void OnRankSuitDropdownChanged(int index) => UpdateInputFieldsForSelectedSuit();
+
         private void UpdateInputFieldsForSelectedSuit()
         {
-            Suits selectedSuit = allSuits[rankSuitDropdown.value];
-            for (int i = 0; i < allRanks.Length; i++)
-            {
-                float weight = GetWeightForCard(selectedSuit, allRanks[i]);
-                rankWeightInputFields[i].text = weight.ToString("F2");
-            }
+            var selectedSuit = _allSuits[rankSuitDropdown.value];
+            for (int i = 0; i < _allRanks.Length; i++)
+                rankWeightInputFields[i].text = GetWeightForCard(selectedSuit, _allRanks[i]).ToString("F2");
         }
-        
-        /// <summary>
-        /// Retrieves the stored weight for a given suit and rank.
-        /// </summary>
+
         private float GetWeightForCard(Suits suit, Ranks rank)
         {
-            foreach (var data in cardOverrides)
-            {
-                if (data.Suit == suit && data.Rank == rank)
-                    return data.Weight;
-            }
-            return 1f; // default fallback
+            foreach (var data in _cardOverrides)
+                if (data.Suit == suit && data.Rank == rank) return data.Weight;
+            return 1f;
         }
-        
+
         private void OnRankWeightInputChanged(int rankIndex, string input)
         {
             if (float.TryParse(input, out float newWeight))
             {
-                Suits selectedSuit = allSuits[rankSuitDropdown.value];
-                Ranks rank = allRanks[rankIndex];
+                var selectedSuit = _allSuits[rankSuitDropdown.value];
+                var rank = _allRanks[rankIndex];
                 bool found = false;
-                for (int i = 0; i < cardOverrides.Count; i++)
+                for (int i = 0; i < _cardOverrides.Count; i++)
                 {
-                    if (cardOverrides[i].Suit == selectedSuit && cardOverrides[i].Rank == rank)
+                    if (_cardOverrides[i].Suit == selectedSuit && _cardOverrides[i].Rank == rank)
                     {
-                        if (Math.Abs(cardOverrides[i].Weight - newWeight) > 0.001f)
+                        if (Math.Abs(_cardOverrides[i].Weight - newWeight) > 0.001f)
                         {
-                            CardOverrideData updated = cardOverrides[i];
+                            var updated = _cardOverrides[i];
                             updated.Weight = newWeight;
-                            cardOverrides[i] = updated;
+                            _cardOverrides[i] = updated;
                             HasChanged = true;
                         }
                         found = true;
@@ -144,37 +110,50 @@ namespace Views
                 }
                 if (!found)
                 {
-                    cardOverrides.Add(new CardOverrideData { Suit = selectedSuit, Rank = rank, Weight = newWeight });
+                    _cardOverrides.Add(new CardOverrideData { Suit = selectedSuit, Rank = rank, Weight = newWeight });
                     HasChanged = true;
                 }
             }
             else
             {
-                // Revert to stored value on parsing failure.
-                Suits selectedSuit = allSuits[rankSuitDropdown.value];
-                Ranks rank = allRanks[rankIndex];
+                var selectedSuit = _allSuits[rankSuitDropdown.value];
+                var rank = _allRanks[rankIndex];
                 rankWeightInputFields[rankIndex].text = GetWeightForCard(selectedSuit, rank).ToString("F2");
             }
         }
-        
-        /// <summary>
-        /// Returns a copy of the current card overrides.
-        /// </summary>
-        public List<CardOverrideData> GetCurrentCardOverrides()
-        {
-            return new List<CardOverrideData>(cardOverrides);
-        }
-        
+
+        public List<CardOverrideData> GetCurrentCardOverrides() => new List<CardOverrideData>(_cardOverrides);
+
         public void ResetToDefault()
         {
             HasChanged = false;
-            // Re-display current values (assumed to be the defaults already loaded).
             UpdateInputFieldsForSelectedSuit();
         }
-        
-        public void MarkAsNotChanged()
+
+        public void MarkAsNotChanged() => HasChanged = false;
+
+        public void UpdateRankWeights(Suits updatedSuit, float newSuitWeight)
         {
-            HasChanged = false;
+            foreach (Ranks rank in Enum.GetValues(typeof(Ranks)))
+            {
+                bool found = false;
+                for (int i = 0; i < _cardOverrides.Count; i++)
+                {
+                    if (_cardOverrides[i].Suit == updatedSuit && _cardOverrides[i].Rank == rank)
+                    {
+                        var updatedCard = _cardOverrides[i];
+                        updatedCard.Weight = newSuitWeight;
+                        _cardOverrides[i] = updatedCard;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    _cardOverrides.Add(new CardOverrideData { Suit = updatedSuit, Rank = rank, Weight = newSuitWeight });
+                }
+            }
+            UpdateInputFieldsForSelectedSuit();
         }
     }
 }

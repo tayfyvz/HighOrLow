@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Logger = Utils.Logger;
 
 namespace Managers
 {
@@ -9,21 +10,16 @@ namespace Managers
     {
         public static AudioManager Instance { get; private set; }
         
-        // AudioSource for background music.
         public AudioSource musicSource;
-        
-        // AudioSource for sound effects. You can assign this via the Inspector,
-        // or if it’s null, we create one at runtime.
         [SerializeField] private AudioSource sfxSource;
-        
+
         private void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
-                
-                // Ensure we have a SFX AudioSource.
+
                 if (sfxSource == null)
                 {
                     sfxSource = gameObject.AddComponent<AudioSource>();
@@ -36,20 +32,18 @@ namespace Managers
             }
         }
 
-        /// <summary>
-        /// Loads and plays background music from Addressables.
-        /// </summary>
         public async UniTask LoadBackgroundMusicAsync()
         {
-            string musicKey = "BackgroundMusic"; // Use your Addressable key.
+            string musicKey = "BackgroundMusic";
             AsyncOperationHandle<AudioClip> handle = Addressables.LoadAssetAsync<AudioClip>(musicKey);
             await handle.Task;
+
             if (handle.Status == AsyncOperationStatus.Succeeded)
             {
                 AudioClip clip = handle.Result;
                 if (clip == null)
                 {
-                    Debug.LogError("Loaded AudioClip is null.");
+                    Logger.Log("Loaded AudioClip is null.", LogType.Error);
                     return;
                 }
 
@@ -60,27 +54,22 @@ namespace Managers
                 }
 
                 musicSource.clip = clip;
-                Debug.Log("Playing background music: " + clip.name);
+                Logger.Log($"Playing background music: {clip.name}", LogType.Log);
                 musicSource.Play();
             }
             else
             {
-                Debug.LogError("Failed to load background music.");
+                Logger.Log("Failed to load background music.", LogType.Error);
             }
 
             Addressables.Release(handle);
         }
 
-        /// <summary>
-        /// Plays a sound effect via the SFX AudioSource.  
-        /// Using PlayOneShot prevents interrupting any audio already playing.
-        /// </summary>
-        /// <param name="clip">The AudioClip to play as a sound effect.</param>
         public void PlaySfx(AudioClip clip)
         {
             if (clip == null)
             {
-                Debug.LogWarning("SFX clip is null.");
+                Logger.Log("SFX clip is null.", LogType.Warning);
                 return;
             }
             if (sfxSource == null)
@@ -88,6 +77,22 @@ namespace Managers
                 sfxSource = gameObject.AddComponent<AudioSource>();
             }
             sfxSource.PlayOneShot(clip);
+        }
+
+        public void StopMusic()
+        {
+            if (musicSource.isPlaying)
+            {
+                musicSource.Stop();
+            }
+        }
+
+        public void ResumeMusic()
+        {
+            if (!musicSource.isPlaying)
+            {
+                musicSource.Play();
+            }
         }
     }
 }

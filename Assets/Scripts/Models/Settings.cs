@@ -17,7 +17,6 @@ namespace Models
         
         public float GetCardWeight(Suits suit, Ranks rank)
         {
-            // Check for a card specific override.
             if (_cardOverridesDict != null && 
                 _cardOverridesDict.TryGetValue(suit, out Dictionary<Ranks, float> rankOverrides) &&
                 rankOverrides != null &&
@@ -25,7 +24,6 @@ namespace Models
             {
                 return weight;
             }
-            // Check for a suit override.
             if (_suitOverridesDict != null && 
                 _suitOverridesDict.TryGetValue(suit, out weight))
             {
@@ -50,14 +48,12 @@ namespace Models
             _suitOverridesDict = new Dictionary<Suits, float>();
             foreach (SuitOverrideData data in _suitOverrides)
             {
-                // If there are duplicate suit overrides, this will replace earlier entries.
                 _suitOverridesDict[data.Suit] = data.Weight;
             }
 
             _cardOverridesDict = new Dictionary<Suits, Dictionary<Ranks, float>>();
             foreach (CardOverrideData data in _cardOverrides)
             {
-                // If no dictionary exists for this suit yet, create one.
                 if (!_cardOverridesDict.TryGetValue(data.Suit, out Dictionary<Ranks, float> rankDict))
                 {
                     rankDict = new Dictionary<Ranks, float>();

@@ -10,9 +10,11 @@ namespace Controllers
         void SetPlayersPosition(Vector2[] positions);
         void ReceiveCard(int playerId, Card card);
         void MarkRoundWinner(int winningIndex);
+        void SetPlayerScore(int winningIndex);
         int MarkSessionWinner();
         void ResetPlayers();
         int GetPlayerCount();
         Vector2[] GetPlayersPositions();
+        Transform[] GetPlayersTransforms();
     }
 }

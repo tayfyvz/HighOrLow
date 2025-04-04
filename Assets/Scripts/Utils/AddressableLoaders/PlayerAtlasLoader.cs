@@ -8,25 +8,24 @@ namespace Utils.AddressableLoaders
 {
     public class PlayerAtlasLoader : BaseAddressableLoader<SpriteAtlas>
     {
-        private const string AssetAddress = "PlayersAtlas";
-
         private SpriteAtlas _playerAtlas;
 
         public override async UniTask<SpriteAtlas> LoadAsync()
         {
-            AsyncOperationHandle<SpriteAtlas> atlasHandle = Addressables.LoadAssetAsync<SpriteAtlas>(AssetAddress);
+            AsyncOperationHandle<SpriteAtlas> atlasHandle =
+                Addressables.LoadAssetAsync<SpriteAtlas>(Constants.PLAYERS_ATLAS);
             handle = atlasHandle;
             _playerAtlas = await atlasHandle.Task;
 
             if (_playerAtlas == null)
             {
-                Debug.LogError($"Failed to load Sprite Atlas at address: {AssetAddress}");
+                Logger.Log($"Failed to load Sprite Atlas at address: {Constants.PLAYERS_ATLAS}");
             }
             else
             {
-                Debug.Log("Players Sprite Atlas loaded successfully!");
+                Logger.Log("Players Sprite Atlas loaded successfully!");
             }
-            
+
             return _playerAtlas;
         }
 
@@ -42,7 +41,7 @@ namespace Utils.AddressableLoaders
         {
             if (_playerAtlas == null)
             {
-                Debug.LogWarning("Atlas is not loaded yet.");
+                Logger.Log("Atlas is not loaded yet.", LogType.Warning);
                 return null;
             }
 
@@ -51,11 +50,11 @@ namespace Utils.AddressableLoaders
 
             if (sprite == null)
             {
-                Debug.LogWarning($"Sprite not found: {spriteName}");
+                Logger.Log($"Sprite not found: {spriteName}", LogType.Warning);
             }
             else
             {
-                Debug.Log($"Sprite found: {spriteName}");
+                Logger.Log($"Sprite found: {spriteName}");
             }
 
             return sprite;

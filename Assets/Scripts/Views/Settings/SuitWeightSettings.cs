@@ -1,132 +1,100 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
-using TMPro;
 using Models;
+using TMPro;
+using UnityEngine;
 
-namespace Views
+namespace Views.Settings
 {
     public class SuitWeightSettings : MonoBehaviour
     {
+        public event Action<Suits, float> OnSuitWeightChanged;
+
         [Header("Suit Weight UI")]
         [SerializeField] private TMP_Dropdown suitDropdown;
         [SerializeField] private TMP_InputField suitWeightInputField;
-        
-        // Internal storage for the suit overrides.
-        private List<SuitOverrideData> suitOverrides = new List<SuitOverrideData>();
-        private Suits[] allSuits;
-        
-        // The change flag.
+
+        private List<SuitOverrideData> _suitOverrides = new List<SuitOverrideData>();
+        private Suits[] _allSuits;
         public bool HasChanged { get; private set; } = false;
-        
-        /// <summary>
-        /// Initializes the UI with the default override list.
-        /// </summary>
+
         public void Initialize(List<SuitOverrideData> defaultOverrides)
         {
-            allSuits = (Suits[])Enum.GetValues(typeof(Suits));
-            // Copy defaults into internal storage.
-            suitOverrides = new List<SuitOverrideData>(defaultOverrides);
-            
-            // Populate the dropdown using enum names.
-            List<string> options = new List<string>();
-            foreach (Suits s in allSuits)
-            {
-                options.Add(s.ToString());
-            }
+            _allSuits = (Suits[])Enum.GetValues(typeof(Suits));
+            _suitOverrides = new List<SuitOverrideData>(defaultOverrides);
+
+            var options = new List<string>();
+            foreach (Suits s in _allSuits) options.Add(s.ToString());
             suitDropdown.ClearOptions();
             suitDropdown.AddOptions(options);
             suitDropdown.onValueChanged.RemoveAllListeners();
             suitDropdown.onValueChanged.AddListener(OnDropdownChanged);
-            
-            // Set initial selection to the first suit.
+
             suitDropdown.value = 0;
-            
-            // Set up the input field.
+
             suitWeightInputField.onEndEdit.RemoveAllListeners();
             suitWeightInputField.onEndEdit.AddListener(OnInputFieldEndEdit);
-            suitWeightInputField.text = GetWeightForSuit(allSuits[0]).ToString("F2");
-            
+            suitWeightInputField.text = GetWeightForSuit(_allSuits[0]).ToString("F2");
             HasChanged = false;
         }
-        
-        /// <summary>
-        /// Returns the stored weight for a given suit.
-        /// </summary>
+
         private float GetWeightForSuit(Suits suit)
         {
-            foreach (var data in suitOverrides)
-            {
-                if (data.Suit == suit)
-                    return data.Weight;
-            }
-            return 1f; // fallback default
+            foreach (var data in _suitOverrides)
+                if (data.Suit == suit) return data.Weight;
+            return 1f;
         }
-        
+
         private void OnDropdownChanged(int index)
         {
-            Suits selected = allSuits[index];
+            var selected = _allSuits[index];
             suitWeightInputField.text = GetWeightForSuit(selected).ToString("F2");
         }
-        
+
         private void OnInputFieldEndEdit(string input)
         {
             if (float.TryParse(input, out float newWeight))
             {
-                int index = suitDropdown.value;
-                Suits selected = allSuits[index];
+                var index = suitDropdown.value;
+                var selected = _allSuits[index];
                 bool found = false;
-                for (int i = 0; i < suitOverrides.Count; i++)
+
+                for (int i = 0; i < _suitOverrides.Count; i++)
                 {
-                    if (suitOverrides[i].Suit == selected)
+                    if (_suitOverrides[i].Suit == selected)
                     {
-                        // Update only if the value is different.
-                        if (Math.Abs(suitOverrides[i].Weight - newWeight) > 0.001f)
+                        if (Math.Abs(_suitOverrides[i].Weight - newWeight) > 0.001f)
                         {
-                            SuitOverrideData updated = suitOverrides[i];
+                            var updated = _suitOverrides[i];
                             updated.Weight = newWeight;
-                            suitOverrides[i] = updated;
+                            _suitOverrides[i] = updated;
                             HasChanged = true;
+                            OnSuitWeightChanged?.Invoke(selected, newWeight);
                         }
                         found = true;
                         break;
                     }
                 }
+
                 if (!found)
                 {
-                    suitOverrides.Add(new SuitOverrideData { Suit = selected, Weight = newWeight });
+                    _suitOverrides.Add(new SuitOverrideData { Suit = selected, Weight = newWeight });
                     HasChanged = true;
+                    OnSuitWeightChanged?.Invoke(selected, newWeight);
                 }
             }
             else
             {
-                // Revert to stored value if parsing fails.
-                int index = suitDropdown.value;
-                Suits selected = allSuits[index];
+                var index = suitDropdown.value;
+                var selected = _allSuits[index];
                 suitWeightInputField.text = GetWeightForSuit(selected).ToString("F2");
             }
         }
-        
-        /// <summary>
-        /// Returns a copy of the current suit overrides.
-        /// </summary>
-        public List<SuitOverrideData> GetCurrentSuitOverrides()
-        {
-            return new List<SuitOverrideData>(suitOverrides);
-        }
-        
-        /// <summary>
-        /// Resets the change flag (if resetting is done externally).
-        /// </summary>
-        public void ResetToDefault()
-        {
-            HasChanged = false;
-            // The UI reset should be handled via Initialize() from the composite view.
-        }
-        
-        public void MarkAsNotChanged()
-        {
-            HasChanged = false;
-        }
+
+        public List<SuitOverrideData> GetCurrentSuitOverrides() => new List<SuitOverrideData>(_suitOverrides);
+
+        public void ResetToDefault() => HasChanged = false;
+
+        public void MarkAsNotChanged() => HasChanged = false;
     }
 }

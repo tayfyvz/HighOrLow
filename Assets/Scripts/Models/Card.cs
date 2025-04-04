@@ -14,10 +14,7 @@ namespace Models
         Two, Three, Four, Five, Six,
         Seven, Eight, Nine, Ten, Jack, Queen, King
     }
-
-    /// <summary>
-    /// Represents a playing card with a suit, rank, and weight.
-    /// </summary>
+    
     public class Card
     {
         public Ranks Rank { get; }
@@ -33,7 +30,7 @@ namespace Models
         
         public override string ToString()
         {
-            return $"{Rank} of {Suit} (Weight: {Weight:F1})";
+            return $"{Rank} of {Suit}\n(Weight: {Weight:F1})";
         }
     }
 }

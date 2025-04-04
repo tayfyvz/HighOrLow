@@ -1,11 +1,12 @@
 using UnityEngine;
 using Views;
+using Logger = Utils.Logger;
 
 namespace Controllers
 {
     public struct BetResult
     {
-        public bool IsCorrect { get; set; }
+        public bool IsBet { get; set; }
         public int AwardedPoints { get; set; }
         public int ComboMultiplier { get; set; }
     }
@@ -18,14 +19,11 @@ namespace Controllers
 
         private int _comboMultiplier = 1;
 
-        public void Initialize(Vector2[] playersPositions)
+        public void Initialize(Vector2[] playersPositions, Transform[] playersTransforms)
         {
-            View.InstantiateBetButtons(playersPositions, SetBet);
+            View.InstantiateBetButtons(playersPositions, playersTransforms, SetBet);
         }
 
-        /// <summary>
-        /// Attaches the BetView so that this controller updates it.
-        /// </summary>
         public void SetBet(int playerIndex)
         {
             if (playerIndex < 0)
@@ -34,7 +32,8 @@ namespace Controllers
             }
 
             CurrentBetIndex = playerIndex;
-            Debug.Log($"User bet set to Player {playerIndex + 1}");
+            Logger.Log($"User bet set to Player {playerIndex + 1}");
+            View.DeactivateButtonsExcept(playerIndex);
             UpdateView();
         }
 
@@ -46,6 +45,7 @@ namespace Controllers
             if (View != null)
             {
                 View.ResetView();
+                View.ResetBet();
             }
             else
             {
@@ -53,51 +53,29 @@ namespace Controllers
             }
         }
 
-        /// <summary>
-        /// Evaluates the bet. Awards the specified points if the bet is correct.
-        /// After evaluation, the bet is reset.
-        /// </summary>
-        // public bool EvaluateBet(int winningPlayerIndex, int basePoints)
-        // {
-        //     bool correct = CurrentBetIndex == winningPlayerIndex;
-        //     if (correct)
-        //     {
-        //         int awardedPoints = basePoints * _comboMultiplier;
-        //         UserScore += awardedPoints;
-        //         Debug.Log($"Bet correct. Awarded {basePoints} x {_comboMultiplier} = {awardedPoints} points.");
-        //         _comboMultiplier++; // Increment combo for subsequent correct bets.
-        //     }
-        //     else
-        //     {
-        //         Debug.Log("Bet incorrect. Combo reset.");
-        //         _comboMultiplier = 1;
-        //     }
-        //
-        //     // Reset the active bet.
-        //     CurrentBetIndex = -1;
-        //     UpdateView();
-        //     return correct;
-        // }
-        
         public BetResult EvaluateBet(int winningPlayerIndex, int basePoints)
         {
             return CurrentBetIndex == winningPlayerIndex ? EvaluateCorrectBet(basePoints) : EvaluateIncorrectBet();
         }
-        
+
+        public void UpdateScore()
+        {
+            UpdateView();
+        }
+
         private BetResult EvaluateCorrectBet(int basePoints)
         {
             BetResult result = new BetResult
             {
-                IsCorrect = true,
+                IsBet = true,
                 ComboMultiplier = _comboMultiplier,
                 AwardedPoints = basePoints * _comboMultiplier,
             };
 
             UserScore += result.AwardedPoints;
-            Debug.Log($"Bet correct. Awarded {basePoints} x {_comboMultiplier} = {result.AwardedPoints} points.");
-            _comboMultiplier++; // Increment multiplier for subsequent correct bets.
+            Logger.Log($"Bet correct. Awarded {basePoints} x {_comboMultiplier} = {result.AwardedPoints} points.");
+            _comboMultiplier++;
             CurrentBetIndex = -1;
-            UpdateView();
             return result;
         }
 
@@ -105,15 +83,19 @@ namespace Controllers
         {
             BetResult result = new BetResult
             {
-                IsCorrect = false,
+                IsBet = false,
                 ComboMultiplier = 1,
                 AwardedPoints = 0
             };
 
+            if (CurrentBetIndex == -1)
+            {
+                result.IsBet = false;
+            }
+
             Debug.Log("Bet incorrect. Combo reset.");
             _comboMultiplier = 1;
             CurrentBetIndex = -1;
-            UpdateView();
             return result;
         }
 

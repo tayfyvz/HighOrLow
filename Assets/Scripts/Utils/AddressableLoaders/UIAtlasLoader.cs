@@ -4,31 +4,31 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.U2D;
 
-namespace Utils.AddressableLoaders.Utils
+namespace Utils.AddressableLoaders
 {
     public class UIAtlasLoader : BaseAddressableLoader<SpriteAtlas>
     {
-        private const string AssetAddress = "UIAtlas";
-    
-        private SpriteAtlas uiAtlas;
-    
+        private SpriteAtlas _uiAtlas;
+
         public override async UniTask<SpriteAtlas> LoadAsync()
         {
-            AsyncOperationHandle<SpriteAtlas> atlasHandle = Addressables.LoadAssetAsync<SpriteAtlas>(AssetAddress);
+            AsyncOperationHandle<SpriteAtlas>
+                atlasHandle = Addressables.LoadAssetAsync<SpriteAtlas>(Constants.UI_ATLAS);
             handle = atlasHandle;
-            uiAtlas = await atlasHandle.Task;
-    
-            if (uiAtlas == null)
+            _uiAtlas = await atlasHandle.Task;
+
+            if (_uiAtlas == null)
             {
-                Debug.LogError($"Failed to load UI Atlas at address: {AssetAddress}");
+                Logger.Log($"Failed to load UI Atlas at address: {Constants.UI_ATLAS}", LogType.Error);
             }
             else
             {
-                Debug.Log("UI Atlas loaded successfully!");
+                Logger.Log("UI Atlas loaded successfully!");
             }
-            return uiAtlas;
+
+            return _uiAtlas;
         }
-    
+
         public override void Release()
         {
             if (handle.IsValid())
@@ -36,20 +36,21 @@ namespace Utils.AddressableLoaders.Utils
                 Addressables.Release(handle);
             }
         }
-    
+
         public Sprite GetSprite(string spriteName)
         {
-            if (uiAtlas == null)
+            if (_uiAtlas == null)
             {
-                Debug.LogWarning("Atlas is not loaded yet.");
+                Logger.Log("Atlas is not loaded yet.", LogType.Warning);
                 return null;
             }
-    
-            Sprite sprite = uiAtlas.GetSprite(spriteName);
+
+            Sprite sprite = _uiAtlas.GetSprite(spriteName);
             if (sprite == null)
             {
-                Debug.LogWarning($"Sprite not found: {spriteName}");
+                Logger.Log($"Sprite not found: {spriteName}", LogType.Warning);
             }
+
             return sprite;
         }
     }

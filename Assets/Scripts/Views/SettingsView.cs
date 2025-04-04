@@ -1,191 +1,151 @@
-using System;
-using System.Collections.Generic;
-using Controllers;
 using Managers;
-using Models;
+using Managers.Managers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Views.Settings;
+using Logger = Utils.Logger;
 
 namespace Views
 {
     public class SettingsView : MonoBehaviour, IView
     {
         [Header("Modular Settings References")]
-        [Tooltip("Reference to the PlayerCountSettings component.")]
         [SerializeField] private PlayerCountSettings _playerCountSettings;
-        
-        [Tooltip("Reference to the SuitWeightSettings component.")]
         [SerializeField] private SuitWeightSettings _suitWeightSettings;
-        
-        [Tooltip("Reference to the RankWeightSettings component.")]
         [SerializeField] private RankWeightSettings _rankWeightSettings;
-        
+
         [Header("Default Config Reference")]
-        [Tooltip("Default CardsWeightConfig asset (used as the baseline).")]
         [SerializeField] private CardsWeightConfig _defaultCardsWeightConfig;
-        
+
         [Header("Buttons")]
         [SerializeField] private Button _applyButton;
         [SerializeField] private Button _resetButton;
-        
-        // Temporary configuration that will be updated from the UI modules.
+
         private CardsWeightConfig _tempCardsWeightConfig;
-        
+
         private void Awake()
         {
             if (_defaultCardsWeightConfig == null)
             {
-                Debug.LogError("Default CardsWeightConfig is not assigned in SettingsView!");
+                Logger.Log("Default CardsWeightConfig is not assigned in SettingsView!", LogType.Error);
             }
             else
             {
-                // Create a copy of the default configuration.
                 _tempCardsWeightConfig = Instantiate(_defaultCardsWeightConfig);
             }
         }
-        
+
         private void OnEnable()
         {
-            // Only initialize if required modular components are assigned.
             if (_playerCountSettings != null && _suitWeightSettings != null && _rankWeightSettings != null)
             {
-                // Initialize the modular components with values from the default config.
                 ResetViewToDefault();
             }
             else
             {
-                Debug.LogError("One or more modular settings components are not assigned in SettingsView!");
+                Logger.Log("One or more modular settings components are not assigned in SettingsView!", LogType.Error);
             }
-            
-            if (_applyButton != null)
+
+            _applyButton?.onClick.AddListener(OnApplyButtonClicked);
+            if (_applyButton == null) Logger.Log("Apply Button is not assigned in SettingsView!", LogType.Error);
+
+            _resetButton?.onClick.AddListener(OnResetButtonClicked);
+            if (_resetButton == null) Logger.Log("Reset Button is not assigned in SettingsView!", LogType.Error);
+
+            if (_suitWeightSettings != null && _rankWeightSettings != null)
             {
-                _applyButton.onClick.AddListener(OnApplyButtonClicked);
-            }
-            else
-            {
-                Debug.LogError("Apply Button is not assigned in SettingsView!");
-            }
-            
-            if (_resetButton != null)
-            {
-                _resetButton.onClick.AddListener(OnResetButtonClicked);
-            }
-            else
-            {
-                Debug.LogError("Reset Button is not assigned in SettingsView!");
+                _suitWeightSettings.OnSuitWeightChanged += _rankWeightSettings.UpdateRankWeights;
             }
         }
-        
+
         private void OnDisable()
         {
-            // Use null checks for all button references.
-            if (_applyButton != null)
+            _applyButton?.onClick.RemoveListener(OnApplyButtonClicked);
+            _resetButton?.onClick.RemoveListener(OnResetButtonClicked);
+
+            if (_suitWeightSettings != null && _rankWeightSettings != null)
             {
-                _applyButton.onClick.RemoveListener(OnApplyButtonClicked);
-            }
-            if (_resetButton != null)
-            {
-                _resetButton.onClick.RemoveListener(OnResetButtonClicked);
+                _suitWeightSettings.OnSuitWeightChanged -= _rankWeightSettings.UpdateRankWeights;
             }
         }
-        
-        /// <summary>
-        /// Reinitializes the sub-components to display default values from _defaultCardsWeightConfig.
-        /// Because _defaultCardsWeightConfig already contains the desired default settings—
-        /// (player count = 2, Hearts weight = 2.3, and Ace of Spades weight = 3.1)—
-        /// these values will appear in the UI.
-        /// </summary>
+
         private void ResetViewToDefault()
         {
             if (_defaultCardsWeightConfig == null)
             {
-                Debug.LogError("Default CardsWeightConfig is missing.");
-                return;
-            }
-            
-            // Recreate the temporary config.
-            _tempCardsWeightConfig = Instantiate(_defaultCardsWeightConfig);
-            
-            // Initialize each modular component with their default values.
-            _playerCountSettings.Initialize(2); // e.g., sets player count to 2.
-            _suitWeightSettings.Initialize(_tempCardsWeightConfig.SuitOverrides);
-            _rankWeightSettings.Initialize(_tempCardsWeightConfig.CardOverrides);
-        }
-        
-        /// <summary>
-        /// When the Apply button is clicked, each module is checked:
-        /// - If a module’s HasChanged flag is true, the new settings from that component are written 
-        ///   into _tempCardsWeightConfig.
-        /// - Then SettingsManager.Instance.SetSettings(...) is called with the updated values.
-        /// Afterwards, the components’ change flags are reset.
-        /// </summary>
-        private void OnApplyButtonClicked()
-        {
-            if (_playerCountSettings == null || _suitWeightSettings == null || _rankWeightSettings == null)
-            {
-                Debug.LogError("One or more settings components are not assigned.");
+                Logger.Log("Default CardsWeightConfig is missing.", LogType.Error);
                 return;
             }
 
-            // Always update the player count.
+            _tempCardsWeightConfig = Instantiate(_defaultCardsWeightConfig);
+
+            _playerCountSettings.Initialize(2);
+            _suitWeightSettings.Initialize(_tempCardsWeightConfig.SuitOverrides);
+            _rankWeightSettings.Initialize(_tempCardsWeightConfig.CardOverrides);
+        }
+
+        private void OnApplyButtonClicked()
+        {
+            SoundManager.Instance.PlaySound(SoundType.ButtonClick);
+
+            if (_playerCountSettings == null || _suitWeightSettings == null || _rankWeightSettings == null)
+            {
+                Logger.Log("One or more settings components are not assigned.", LogType.Error);
+                return;
+            }
+
             int currentPlayerCount = _playerCountSettings.GetCurrentPlayerCount();
-            
-            // Update suit overrides only if changes were made.
+
             if (_suitWeightSettings.HasChanged)
             {
                 _tempCardsWeightConfig.SuitOverrides.Clear();
                 _tempCardsWeightConfig.SuitOverrides.AddRange(_suitWeightSettings.GetCurrentSuitOverrides());
             }
-            
-            // Update rank (card) overrides only if changes were made.
+
             if (_rankWeightSettings.HasChanged)
             {
                 _tempCardsWeightConfig.CardOverrides.Clear();
                 _tempCardsWeightConfig.CardOverrides.AddRange(_rankWeightSettings.GetCurrentCardOverrides());
             }
-            
-            // Pass these values to the SettingsManager.
+
             SettingsManager.Instance.SetSettings(
                 currentPlayerCount,
                 _tempCardsWeightConfig.DefaultWeight,
                 _tempCardsWeightConfig.SuitOverrides,
-                _tempCardsWeightConfig.CardOverrides);
-            
-            Debug.Log("Applied settings:");
-            Debug.Log("Player Count: " + currentPlayerCount);
+                _tempCardsWeightConfig.CardOverrides
+            );
+
+            Logger.Log("Applied settings:", LogType.Log);
+            Logger.Log($"Player Count: {currentPlayerCount}", LogType.Log);
             foreach (var suitData in _tempCardsWeightConfig.SuitOverrides)
             {
-                Debug.Log("Suit " + suitData.Suit + " Weight: " + suitData.Weight);
+                Logger.Log($"Suit {suitData.Suit} Weight: {suitData.Weight}", LogType.Log);
             }
             foreach (var cardData in _tempCardsWeightConfig.CardOverrides)
             {
-                Debug.Log("Card " + cardData.Suit + " " + cardData.Rank + " Weight: " + cardData.Weight);
+                Logger.Log($"Card {cardData.Suit} {cardData.Rank} Weight: {cardData.Weight}", LogType.Log);
             }
-            
-            // Reset the change flags on each component.
+
             _playerCountSettings.MarkAsNotChanged();
             _suitWeightSettings.MarkAsNotChanged();
             _rankWeightSettings.MarkAsNotChanged();
-            
+
             if (GameInitializer.Instance != null)
             {
                 _ = GameInitializer.Instance.LoadGameSceneWithLoadingAsync();
             }
             else
             {
-                Debug.LogError("GameInitializer instance not found. Falling back to direct scene load.");
+                Logger.Log("GameInitializer instance not found. Falling back to direct scene load.", LogType.Error);
                 SceneManager.LoadScene("Game", LoadSceneMode.Single);
             }
         }
-        
-        /// <summary>
-        /// Resets all modules to their default values and applies those settings.
-        /// </summary>
+
         private void OnResetButtonClicked()
         {
+            SoundManager.Instance.PlaySound(SoundType.ButtonClick);
             ResetViewToDefault();
-            OnApplyButtonClicked();
         }
     }
 }
